@@ -22,6 +22,13 @@ fun calcularTotal(subtotal: Double, igv: Double): Double {
     return subtotal + igv
 }
 
+fun calcularDescuento(total: Double): Double {
+    return when {
+        total > 5000 -> total * 0.10
+        total > 3000 -> total * 0.05
+        else -> 0.0
+    }
+}
 fun mostrarDetalle(productos: List<Producto>) {
     println("--------- DETALLE DEL CARRITO ---------")
     var i = 1
@@ -56,12 +63,27 @@ fun main() {
     println("Cantidad de productos: ${carrito.size}")
     println()
 
+    val masCaro = carrito.maxByOrNull { it.precio }
+    if (masCaro != null) {
+        println("Producto mas caro: ${masCaro.nombre} " + String.format("(S/ %.2f)", masCaro.precio))
+    }
+    println()
+
     val subtotal = calcularSubtotal(carrito)
     val igv = calcularIGV(subtotal)
-    val total = calcularTotal(subtotal, igv)
+    val totalSinDescuento = calcularTotal(subtotal, igv)
+    val descuento = calcularDescuento(totalSinDescuento)
+    val totalFinal = totalSinDescuento - descuento
 
-    println(String.format("Subtotal : S/ %.2f", subtotal))
-    println(String.format("IGV (18%%): S/ %.2f", igv))
-    println(String.format("TOTAL    : S/ %.2f", total))
+
+    println(String.format("%-25s S/ %8.2f", "Subtotal :", subtotal))
+    println(String.format("%-25s S/ %8.2f", "IGV (18%) :", igv))
+    println(String.format("%-25s S/ %8.2f", "TOTAL :", totalSinDescuento))
+
+    if (descuento > 0.0) {
+        val pct = if (totalSinDescuento > 5000) "10%" else "5%"
+        println(String.format("%-25s S/ %8.2f", "Descuento ($pct) :", descuento))
+        println(String.format("%-25s S/ %8.2f", "TOTAL CON DESCUENTO :", totalFinal))
+    }
 }
 
