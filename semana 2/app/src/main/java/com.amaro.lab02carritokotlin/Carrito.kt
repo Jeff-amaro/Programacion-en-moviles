@@ -1,13 +1,9 @@
 package com.amaro.lab02carritokotlin
 
-// --- 1. ENCAPSULAMIENTO Y ABSTRACCIÓN ---
-
-// Abstracción: Interfaz que define la capacidad de calcular costo total
 interface Calculable {
     fun calcularSubtotal(): Double
 }
 
-// Encapsulamiento: Producto con propiedades protegidas y métodos para manipular estado
 open class Producto(
     val nombre: String,
     val precio: Double,
@@ -15,7 +11,7 @@ open class Producto(
 ) : Calculable {
 
     var cantidad: Int = cantidadInicial
-        private set // La cantidad solo se puede modificar mediante métodos controlados
+        private set
 
     fun agregarCantidad(adicional: Int) {
         if (adicional > 0) {
@@ -27,3 +23,22 @@ open class Producto(
         return precio * cantidad
     }
 }
+
+class ProductoFisico(
+    nombre: String,
+    precio: Double,
+    cantidad: Int,
+    val pesoKg: Double
+) : Producto(nombre, precio, cantidad) {
+
+    fun calcularCostoEnvio(): Double {
+        return pesoKg * 5.0
+    }
+}
+
+class ProductoDigital(
+    nombre: String,
+    precio: Double,
+    cantidad: Int,
+    val urlDescarga: String
+) : Producto(nombre, precio, cantidad)
