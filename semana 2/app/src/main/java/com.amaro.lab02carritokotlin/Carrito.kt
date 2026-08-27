@@ -124,3 +124,57 @@ class CarritoDeCompras(
         }
     }
 }
+fun main() {
+    println("=========================================")
+    println("   BIENVENIDO A LA TIENDA TECSUP         ")
+    println("=========================================")
+
+    print("Ingrese el nombre del cliente: ")
+    val cliente = readlnOrNull()?.takeIf { it.isNotBlank() } ?: "Cliente Anónimo"
+
+    val carrito = CarritoDeCompras(cliente)
+
+    while (true) {
+        println("\n--- AGREGAR PRODUCTO ---")
+        println("1. Producto Físico")
+        println("2. Producto Digital")
+        println("3. Finalizar y ver resumen")
+        print("Seleccione una opción (1-3): ")
+
+        when (readlnOrNull()?.trim()) {
+            "1" -> {
+                print("Nombre del producto: ")
+                val nombre = readlnOrNull()?.trim().orEmpty()
+                print("Precio (S/): ")
+                val precio = readlnOrNull()?.toDoubleOrNull() ?: 0.0
+                print("Cantidad: ")
+                val cantidad = readlnOrNull()?.toIntOrNull() ?: 1
+                print("Peso en Kg: ")
+                val peso = readlnOrNull()?.toDoubleOrNull() ?: 0.5
+
+                carrito.agregarProducto(ProductoFisico(nombre, precio, cantidad, peso))
+                println("✔ Producto físico agregado correctamente.")
+            }
+            "2" -> {
+                print("Nombre del producto: ")
+                val nombre = readlnOrNull()?.trim().orEmpty()
+                print("Precio (S/): ")
+                val precio = readlnOrNull()?.toDoubleOrNull() ?: 0.0
+                print("Cantidad: ")
+                val cantidad = readlnOrNull()?.toIntOrNull() ?: 1
+                print("URL de descarga: ")
+                val url = readlnOrNull()?.trim().orEmpty()
+
+                carrito.agregarProducto(ProductoDigital(nombre, precio, cantidad, url))
+                println("✔ Producto digital agregado correctamente.")
+            }
+            "3" -> {
+                println("\nProcesando compra...\n")
+                break
+            }
+            else -> println("Opción inválida, intente de nuevo.")
+        }
+    }
+
+    carrito.mostrarResumen()
+}
