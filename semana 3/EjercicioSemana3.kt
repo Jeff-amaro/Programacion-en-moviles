@@ -1,3 +1,5 @@
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Scanner
 
 fun main() {
@@ -48,4 +50,14 @@ fun main() {
     println("Interes aplicado: ${(porcentajeInteres * 100).toInt()}%(S/ $montoInteres)")
     println("Total a pagar: S/$totalPagar")
     println("Pago mensual: S/$pagoMensual")
+
+    println("\n  Cronograma de pagos  ")
+
+    var fechaPago = LocalDate.now()
+    val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    for(i in 1..cuotas){
+        fechaPago = fechaPago.plusMonths(1)
+        println("Cuotas $i \t Fecha: ${fechaPago.format(formato)} \t Monto: S/ ${String.format("%.2f",pagoMensual)}")
+    }
 }
