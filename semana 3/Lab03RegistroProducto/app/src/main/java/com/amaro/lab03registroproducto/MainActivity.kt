@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.amaro.lab03registroproducto.ui.theme.Lab03RegistroProductoTheme
 
@@ -51,7 +53,7 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
     var precio by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
     var mostrarResumen by remember { mutableStateOf(false) }
-    var errorMensaje by remember { mutableStateOf(false) }
+    var textoError by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -71,7 +73,10 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
 
         OutlinedTextField(
             value = nombre,
-            onValueChange = { nombre = it },
+            onValueChange = {
+                nombre = it
+                if (textoError.isNotEmpty()) textoError = ""
+            },
             label = { Text("Nombre del producto") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -81,15 +86,23 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
         Row(modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = precio,
-                onValueChange = { precio = it },
+                onValueChange = {
+                    precio = it
+                    if (textoError.isNotEmpty()) textoError = ""
+                },
                 label = { Text("Precio (S/)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(16.dp))
             OutlinedTextField(
                 value = cantidad,
-                onValueChange = { cantidad = it },
+                onValueChange = {
+                    cantidad = it
+                    if (textoError.isNotEmpty()) textoError = ""
+                },
                 label = { Text("Cantidad") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -99,12 +112,26 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Button(
                 onClick = {
-                    if (nombre.isBlank() || precio.isBlank() || cantidad.isBlank()) {
-                        errorMensaje = true
-                        mostrarResumen = false
-                    } else {
-                        errorMensaje = false
-                        mostrarResumen = true
+                    val p = precio.toDoubleOrNull()
+                    val c = cantidad.toIntOrNull()
+
+                    when {
+                        nombre.isBlank() || precio.isBlank() || cantidad.isBlank() -> {
+                            textoError = "Por favor complete todos los campos"
+                            mostrarResumen = false
+                        }
+                        p == null || p <= 0 -> {
+                            textoError = "Ingrese un precio numérico válido mayor a 0"
+                            mostrarResumen = false
+                        }
+                        c == null || c <= 0 -> {
+                            textoError = "Ingrese una cantidad entera válida mayor a 0"
+                            mostrarResumen = false
+                        }
+                        else -> {
+                            textoError = ""
+                            mostrarResumen = true
+                        }
                     }
                 },
                 modifier = Modifier.weight(1f)
@@ -120,7 +147,7 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                     precio = ""
                     cantidad = ""
                     mostrarResumen = false
-                    errorMensaje = false
+                    textoError = ""
                 }
             ) {
                 Text("Limpiar")
@@ -129,9 +156,9 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (errorMensaje) {
+        if (textoError.isNotEmpty()) {
             Text(
-                text = "Por favor complete todos los campos",
+                text = textoError,
                 color = Color.Red,
                 style = MaterialTheme.typography.bodyMedium
             )
