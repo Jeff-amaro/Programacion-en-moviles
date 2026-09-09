@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -133,7 +134,7 @@ fun RegistroNotasScreen(){
 
                 CursoSliderRow(
                     nombreCurso = "Base de Datos",
-                    porcentaje = "20%",
+                    porcentaje = "25%",
                     nota = notaBd,
                     onNotaChange = {
                         notaBd = it
@@ -198,10 +199,78 @@ fun RegistroNotasScreen(){
                         fontWeight = FontWeight.Bold
                     )
                 }
+
+                if (calculado) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    val promedioPonderado = (notaFundamentos * 0.20f) +
+                            (notaPoo * 0.25f) +
+                            (notaMoviles * 0.30f) +
+                            (notaBd * 0.25f)
+
+                    val promedioFinal = if (redondear) {
+                        kotlin.math.round(promedioPonderado)
+                    } else {
+                        promedioPonderado
+                    }
+
+                    val aprobado = promedioFinal >= 10.5f
+                    val colorEstado = if (aprobado) Color(0xFF2E7D32) else Color(0xFFC62828)
+                    val textoEstado = if (aprobado) "APROBADO" else "DESAPROBADO"
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Resultado Final",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = purplePrimary
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = if (redondear) {
+                                    String.format(Locale.US, "%.0f", promedioFinal)
+                                } else {
+                                    String.format(Locale.US, "%.2f", promedioFinal)
+                                },
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = colorEstado
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Surface(
+                                color = colorEstado.copy(alpha = 0.15f),
+                                shape = MaterialTheme.shapes.small
+                            ) {
+                                Text(
+                                    text = textoEstado,
+                                    color = colorEstado,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
+
 @Composable
 fun CursoSliderRow(
     nombreCurso: String,
@@ -261,5 +330,3 @@ fun CursoSliderRow(
         }
     }
 }
-
-
