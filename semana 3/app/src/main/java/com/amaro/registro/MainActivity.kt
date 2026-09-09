@@ -1,6 +1,7 @@
 package com.amaro.registro
 
 import android.os.Bundle
+import java.util.Locale
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -90,6 +91,114 @@ fun RegistroNotasScreen(){
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text(
+                    text = "Ingreso de Notas",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = purplePrimary,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(bottom = 8.dp)
+                )
+
+                CursoSliderRow(
+                    nombreCurso = "Fundamentos de Programación",
+                    porcentaje = "20%",
+                    nota = notaFundamentos,
+                    onNotaChange = {
+                        notaFundamentos = it
+                        calculado = false
+                    }
+                )
+
+                CursoSliderRow(
+                    nombreCurso = "Programacion Orientada a Objetos",
+                    porcentaje = "25%",
+                    nota = notaPoo,
+                    onNotaChange = {
+                        notaPoo = it
+                        calculado = false
+                    }
+                )
+
+                CursoSliderRow(
+                    nombreCurso = "Desarrollo de Apps Móviles",
+                    porcentaje = "35%",
+                    nota = notaMoviles,
+                    onNotaChange = {
+                        notaMoviles = it
+                        calculado = false
+                    }
+                )
+
+                CursoSliderRow(
+                    nombreCurso = "Base de Datos",
+                    porcentaje = "20%",
+                    nota = notaBd,
+                    onNotaChange = {
+                        notaBd = it
+                        calculado = false
+                    }
+                )
+            }
+        }
+    }
+}
+@Composable
+fun CursoSliderRow(
+    nombreCurso: String,
+    porcentaje: String,
+    nota: Float,
+    onNotaChange: (Float) -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = nombreCurso,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color(0xFF1D1B20)
+                )
+                Badge(
+                    containerColor = Color(0xFF6750A4),
+                    contentColor = Color.White
+                ) {
+                    Text(
+                        text = porcentaje,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Slider(
+                    value = nota,
+                    onValueChange = onNotaChange,
+                    valueRange = 0f..20f,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = String.format(Locale.US, "%.1f", nota),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF6750A4)
+                )
             }
         }
     }
