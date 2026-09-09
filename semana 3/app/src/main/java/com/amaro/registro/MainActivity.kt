@@ -122,8 +122,8 @@ fun RegistroNotasScreen(){
                 )
 
                 CursoSliderRow(
-                    nombreCurso = "Desarrollo de Apps Móviles",
-                    porcentaje = "35%",
+                    nombreCurso = "Programacion en Moviles",
+                    porcentaje = "30%",
                     nota = notaMoviles,
                     onNotaChange = {
                         notaMoviles = it
@@ -140,6 +140,64 @@ fun RegistroNotasScreen(){
                         calculado = false
                     }
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Redondear nota promedio",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Switch(
+                                checked = redondear,
+                                onCheckedChange = { redondear = it }
+                            )
+                        }
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = confirmado,
+                                onCheckedChange = { confirmado = it }
+                            )
+                            Text(
+                                text = "Confirmo que las notas son correctas",
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { calculado = true },
+                    enabled = confirmado,
+                    colors = ButtonDefaults.buttonColors(containerColor = purplePrimary),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Text(
+                        text = "Calcular Promedio",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
