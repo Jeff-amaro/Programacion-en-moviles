@@ -1,0 +1,3 @@
+package com.amaro.lab04carritotecsup
+
+data class Producto(val nombre: String, val precio:Double, val cantidad:Int)
