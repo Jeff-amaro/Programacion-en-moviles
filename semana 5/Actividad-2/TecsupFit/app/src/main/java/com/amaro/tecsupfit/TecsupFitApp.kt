@@ -16,6 +16,7 @@ import com.amaro.tecsupfit.screen.*
 fun TecsupFitApp() {
     var pantallaActual by remember { mutableStateOf("inicio") }
     var claseIdSeleccionada by remember { mutableStateOf<String?>(null) }
+    var datosConfirmacion by remember { mutableStateOf<Triple<String, String, String>?>(null) }
 
     val tabs = listOf(
         Triple("inicio", "Inicio", Icons.Default.Home),
@@ -26,7 +27,7 @@ fun TecsupFitApp() {
 
     Scaffold(
         bottomBar = {
-            if (claseIdSeleccionada == null) {
+            if (claseIdSeleccionada == null && datosConfirmacion == null) {
                 NavigationBar(containerColor = Color.White) {
                     tabs.forEach { (route, label, icon) ->
                         NavigationBarItem(
@@ -46,13 +47,26 @@ fun TecsupFitApp() {
         }
     ) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
-            if (claseIdSeleccionada != null) {
+            if (datosConfirmacion != null) {
+                val (nombre, horario, sala) = datosConfirmacion!!
+                ConfirmationScreen(
+                    claseNombre = nombre,
+                    horario = horario,
+                    sala = sala,
+                    onVerReservasClick = {
+                        datosConfirmacion = null
+                        pantallaActual = "reservas"
+                    }
+                )
+            } else if (claseIdSeleccionada != null) {
                 DetailScreen(
                     claseId = claseIdSeleccionada!!,
                     onBackClick = { claseIdSeleccionada = null },
-                    onReservarClick = { _, _ ->
+                    onReservarClick = { nombre, horario ->
+                        val clase = MockData.clasesDisponibles.find { it.id == claseIdSeleccionada }
+                        val sala = clase?.sala ?: "Sala 1"
                         claseIdSeleccionada = null
-                        pantallaActual = "reservas"
+                        datosConfirmacion = Triple(nombre, horario, sala)
                     }
                 )
             } else {
