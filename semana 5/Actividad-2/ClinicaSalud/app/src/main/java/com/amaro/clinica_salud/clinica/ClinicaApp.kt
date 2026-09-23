@@ -14,6 +14,9 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 
+
+import com.amaro.clinica_salud.screens.*
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClinicaApp() {
@@ -86,17 +89,20 @@ fun ClinicaApp() {
                 startDestination = "inicio",
                 modifier = Modifier.padding(innerPadding)
             ) {
+
                 composable("inicio") {
-                    Text("Pantalla de Inicio (En construcción)", modifier = Modifier.padding(16.dp))
+                    HomeScreen(navController = navController)
                 }
+
 
                 composable(
                     route = "detalle/{doctorId}",
                     arguments = listOf(navArgument("doctorId") { type = NavType.IntType })
                 ) { backStack ->
                     val doctorId = backStack.arguments?.getInt("doctorId") ?: 0
-                    Text("Detalle del Doctor ID: $doctorId", modifier = Modifier.padding(16.dp))
+                    DetailScreen(doctorId = doctorId, navController = navController)
                 }
+
 
                 composable(
                     route = "agendar/{doctorId}",
@@ -105,6 +111,7 @@ fun ClinicaApp() {
                     val doctorId = backStack.arguments?.getInt("doctorId") ?: 0
                     Text("Agendar cita para Doctor ID: $doctorId", modifier = Modifier.padding(16.dp))
                 }
+
 
                 composable(
                     route = "confirmacion/{doctorName}/{fecha}/{hora}",
