@@ -128,7 +128,7 @@ fun ClinicaApp() {
                 }
 
                 composable("mis_citas") {
-                    Text("Lista de Mis Citas (${listaCitas.size} citas)", modifier = Modifier.padding(16.dp))
+                    MisCitasScreen(listaCitas = listaCitas)
                 }
             }
         }
