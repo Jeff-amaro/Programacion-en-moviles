@@ -28,21 +28,23 @@ fun PerfilScreen() {
 
         Spacer(modifier = Modifier.height(30.dp))
 
+        // Avatar con iniciales JA
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .background(Color(0xFFE8F5E9), shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text("DR", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00684A))
+            Text("JA", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00684A))
         }
 
         Spacer(modifier = Modifier.height(12.dp))
-        Text(MockData.usuarioNombre, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Text(MockData.usuarioPlan, fontSize = 13.sp, color = Color.Gray)
+        Text("Jeff Amaro", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text("Plan Premium", fontSize = 13.sp, color = Color.Gray)
 
         Spacer(modifier = Modifier.height(30.dp))
 
+        // Estadísticas
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)

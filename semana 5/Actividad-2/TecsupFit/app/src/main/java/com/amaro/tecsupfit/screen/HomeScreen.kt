@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,7 +33,7 @@ fun HomeScreen(onClaseClick: (String) -> Unit) {
         ) {
             Column {
                 Text("TECSUP Fit", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Text("Hola, Diego", color = Color(0xFFC8E6C9), fontSize = 14.sp)
+                Text("Hola, Jeff", color = Color(0xFFC8E6C9), fontSize = 14.sp)
             }
         }
 
@@ -78,16 +78,24 @@ fun HomeScreen(onClaseClick: (String) -> Unit) {
                             modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color(0xFF00684A),
-                                modifier = Modifier.size(32.dp)
-                            )
+                            // Contenedor verde claro con ícono de mancuerna
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(Color(0xFFE8F5E9), shape = RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.FitnessCenter,
+                                    contentDescription = null,
+                                    tint = Color(0xFF00684A),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
                                 Text(clase.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text("${clase.horario} - ${clase.sala}", color = Color.Gray, fontSize = 13.sp)
+                                Text("${clase.horario} · ${clase.sala}", color = Color.Gray, fontSize = 13.sp)
                             }
                         }
                     }

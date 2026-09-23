@@ -1,14 +1,20 @@
 package com.amaro.tecsupfit
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -21,6 +27,7 @@ import com.amaro.tecsupfit.screen.*
 sealed class BottomNavItem(val route: String, val title: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Home : BottomNavItem("home", "Inicio", Icons.Default.Home)
     object Reservas : BottomNavItem("reservas", "Reservas", Icons.Default.List)
+    object Rutinas : BottomNavItem("rutinas", "Rutinas", Icons.Default.FitnessCenter)
     object Perfil : BottomNavItem("perfil", "Perfil", Icons.Default.Person)
 }
 
@@ -30,6 +37,7 @@ fun TecsupFitApp() {
     val navItems = listOf(
         BottomNavItem.Home,
         BottomNavItem.Reservas,
+        BottomNavItem.Rutinas,
         BottomNavItem.Perfil
     )
 
@@ -115,6 +123,11 @@ fun TecsupFitApp() {
             }
             composable("reservas") {
                 ReservasScreen()
+            }
+            composable("rutinas") {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Pantalla de Rutinas", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                }
             }
             composable("perfil") {
                 PerfilScreen()
