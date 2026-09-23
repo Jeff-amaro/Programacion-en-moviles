@@ -116,8 +116,15 @@ fun ClinicaApp() {
                         navArgument("hora") { type = NavType.StringType }
                     )
                 ) { backStack ->
-                    val doc = backStack.arguments?.getString("doctorName") ?: ""
-                    Text("Cita Confirmada con $doc", modifier = Modifier.padding(16.dp))
+                    val doctorName = backStack.arguments?.getString("doctorName") ?: ""
+                    val fecha = backStack.arguments?.getString("fecha") ?: ""
+                    val hora = backStack.arguments?.getString("hora") ?: ""
+                    ConfirmationScreen(
+                        doctorName = doctorName,
+                        fecha = fecha,
+                        hora = hora,
+                        navController = navController
+                    )
                 }
 
                 composable("mis_citas") {
