@@ -5,7 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -76,6 +79,9 @@ fun TarjetaProducto(product: Product) {
                 ) {
                     DropdownMenuItem(
                         text = { Text("Editar") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Edit, contentDescription = null)
+                        },
                         onClick = {
                             expanded = false
                             Toast.makeText(context, "Editar ${product.name}", Toast.LENGTH_SHORT).show()
@@ -83,13 +89,26 @@ fun TarjetaProducto(product: Product) {
                     )
                     DropdownMenuItem(
                         text = { Text("Compartir") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Share, contentDescription = null)
+                        },
                         onClick = {
                             expanded = false
                             Toast.makeText(context, "Compartir ${product.name}", Toast.LENGTH_SHORT).show()
                         }
                     )
+
+                    HorizontalDivider()
+
                     DropdownMenuItem(
-                        text = { Text("Eliminar") },
+                        text = { Text("Eliminar", color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
                         onClick = {
                             expanded = false
                             Toast.makeText(context, "Eliminar ${product.name}", Toast.LENGTH_SHORT).show()
