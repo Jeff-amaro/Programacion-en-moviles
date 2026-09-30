@@ -1,6 +1,8 @@
 package com.amaro.lab04carritotecsup
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -10,11 +12,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PantallaCarrito(modifier: Modifier = Modifier) {
-
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
-
 
     val productos = remember { mutableStateListOf<Producto>() }
 
@@ -78,9 +78,19 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
         HorizontalDivider()
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Productos: ${productos.size}",
-            style = MaterialTheme.typography.titleMedium
-        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(productos) { producto ->
+                Text(
+                    text = "• ${producto.nombre} - ${producto.cantidad} x S/ ${"%.2f".format(producto.precio)}",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
     }
 }
