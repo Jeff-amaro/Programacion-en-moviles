@@ -1,5 +1,6 @@
 package com.amaro.lab04carritotecsup
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -22,6 +24,10 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
 
     val productos = remember { mutableStateListOf<Producto>() }
 
+    val subtotal = productos.sumOf { it.precio * it.cantidad }
+    val igv = subtotal * 0.18
+    val total = subtotal + igv
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -30,6 +36,7 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
         Text(
             text = "Mi Carrito TECSUP",
             style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
@@ -80,20 +87,97 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider()
-        Spacer(modifier = Modifier.height(16.dp))
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        if (productos.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Tu carrito está vacío",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Agrega tu primer producto",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(productos) { producto ->
+                    TarjetaProducto(
+                        producto = producto,
+                        onEliminar = { productos.remove(producto) }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            ),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            items(productos) { producto ->
-                TarjetaProducto(
-                    producto = producto,
-                    onEliminar = { productos.remove(producto) }
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Productos: ${productos.size}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Subtotal", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "S/ ${"%.2f".format(subtotal)}", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "IGV (18%)", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "S/ ${"%.2f".format(igv)}", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "TOTAL",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "S/ ${"%.2f".format(total)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
@@ -117,7 +201,7 @@ fun TarjetaProducto(producto: Producto, onEliminar: () -> Unit) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "S/ ${"%.2f".format(producto.precio)}  x ${producto.cantidad}",
+                    text = "S/ ${"%.2f".format(producto.precio)} x ${producto.cantidad}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
