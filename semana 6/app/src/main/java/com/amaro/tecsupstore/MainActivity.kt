@@ -15,18 +15,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                val products = listOf(
-                    Product(1, "Audifonos", "S/ 89.00"),
-                    Product(2, "Smartwatch", "S/ 199.00"),
-                    Product(3, "Funda celular", "S/ 25.00")
-                )
+                AppDrawer {
+                    val products = listOf(
+                        Product(1, "Audifonos", "S/ 89.00"),
+                        Product(2, "Smartwatch", "S/ 199.00"),
+                        Product(3, "Funda celular", "S/ 25.00")
+                    )
 
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(products) { product ->
-                        TarjetaProducto(product = product)
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(products) { product ->
+                            TarjetaProducto(product = product)
+                        }
                     }
                 }
             }
