@@ -12,6 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.amaro.lab04carritotecsup.data.Producto
 import com.amaro.lab04carritotecsup.screens.AppDrawer
+import com.amaro.lab04carritotecsup.screens.PantallaFavoritos
+import com.amaro.lab04carritotecsup.screens.PantallaPerfil
 import com.amaro.lab04carritotecsup.screens.TarjetaProducto
 import kotlinx.coroutines.launch
 
@@ -34,6 +36,13 @@ fun AppNavegacion() {
 
     val cantidadFavoritos = productos.count { it.esFavorito }
 
+    val subtituloTopBar = when (destinoActual) {
+        "favoritos" -> "Mis Favoritos"
+        "perfil" -> "Perfil de Usuario"
+        "pedidos" -> "Mis Pedidos Realizados"
+        else -> "Más vendidos"
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -55,27 +64,17 @@ fun AppNavegacion() {
                 TopAppBar(
                     title = {
                         Column {
+                            Text(text = "TECSUP Store", fontWeight = FontWeight.Bold)
                             Text(
-                                text = "TECSUP Store",
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "Más vendidos",
+                                text = subtituloTopBar,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     },
                     navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                scope.launch { drawerState.open() }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Abrir Menú"
-                            )
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Abrir Menú")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -90,36 +89,51 @@ fun AppNavegacion() {
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(productos, key = { it.id }) { producto ->
-                        TarjetaProducto(
-                            producto = producto,
-                            onEliminar = {
-                                productos = productos.filter { it.id != producto.id }
-                            },
-                            onToggleFavorito = {
+                when (destinoActual) {
+                    "favoritos" -> {
+                        PantallaFavoritos(
+                            productosFavoritos = productos.filter { it.esFavorito },
+                            onEliminar = { p -> productos = productos.filter { it.id != p.id } },
+                            onToggleFavorito = { p ->
                                 productos = productos.map { item ->
-                                    if (item.id == producto.id) {
-                                        item.copy(esFavorito = !item.esFavorito)
-                                    } else {
-                                        item
-                                    }
+                                    if (item.id == p.id) item.copy(esFavorito = !item.esFavorito) else item
                                 }
                             },
-                            onEditarProducto = { productoEditado ->
+                            onEditarProducto = { pEdit ->
                                 productos = productos.map { item ->
-                                    if (item.id == productoEditado.id) {
-                                        productoEditado
-                                    } else {
-                                        item
-                                    }
+                                    if (item.id == pEdit.id) pEdit else item
                                 }
                             }
                         )
+                    }
+
+                    "perfil" -> {
+                        PantallaPerfil()
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(productos, key = { it.id }) { producto ->
+                                TarjetaProducto(
+                                    producto = producto,
+                                    onEliminar = { productos = productos.filter { it.id != producto.id } },
+                                    onToggleFavorito = {
+                                        productos = productos.map { item ->
+                                            if (item.id == producto.id) item.copy(esFavorito = !item.esFavorito) else item
+                                        }
+                                    },
+                                    onEditarProducto = { productoEditado ->
+                                        productos = productos.map { item ->
+                                            if (item.id == productoEditado.id) productoEditado else item
+                                        }
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
