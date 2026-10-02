@@ -1,6 +1,5 @@
-package com.amaro.lab04carritotecsup
+package com.amaro.lab04carritotecsup.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.amaro.lab04carritotecsup.data.Producto
 
 @Composable
 fun PantallaCarrito(modifier: Modifier = Modifier) {
@@ -178,46 +178,6 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun TarjetaProducto(producto: Producto, onEliminar: () -> Unit) {
-    val subtotalItem = producto.precio * producto.cantidad
-
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = producto.nombre,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "S/ ${"%.2f".format(producto.precio)} x ${producto.cantidad}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Text(
-                text = "S/ ${"%.2f".format(subtotalItem)}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            IconButton(onClick = onEliminar) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
-                    tint = MaterialTheme.colorScheme.error
-                )
             }
         }
     }
