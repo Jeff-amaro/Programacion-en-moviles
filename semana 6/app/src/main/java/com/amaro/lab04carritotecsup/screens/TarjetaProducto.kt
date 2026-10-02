@@ -20,10 +20,22 @@ fun TarjetaProducto(
     producto: Producto,
     onEliminar: () -> Unit,
     onToggleFavorito: () -> Unit = {},
-    onEditar: () -> Unit = {}
+    onEditarProducto: (Producto) -> Unit = {}
 ) {
     val subtotalItem = producto.precio * producto.cantidad
     var mostrarMenu by remember { mutableStateOf(false) }
+    var mostrarDialogoEditar by remember { mutableStateOf(false) }
+
+    if (mostrarDialogoEditar) {
+        DialogoEditarProducto(
+            producto = producto,
+            onConfirmar = { productoEditado ->
+                onEditarProducto(productoEditado)
+                mostrarDialogoEditar = false
+            },
+            onDismiss = { mostrarDialogoEditar = false }
+        )
+    }
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -90,7 +102,7 @@ fun TarjetaProducto(
                         },
                         onClick = {
                             mostrarMenu = false
-                            onEditar()
+                            mostrarDialogoEditar = true
                         }
                     )
 
