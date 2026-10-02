@@ -50,6 +50,15 @@ fun AppNavegacion() {
         ) { innerPadding ->
             if (pantallaActual == "carrito") {
                 PantallaCarrito(
+                    productos = productos,
+                    onAgregarProducto = { nuevoProducto -> productos.add(nuevoProducto) },
+                    onEliminarProducto = { producto -> productos.remove(producto) },
+                    onToggleFavorito = { producto ->
+                        val index = productos.indexOf(producto)
+                        if (index != -1) {
+                            productos[index] = producto.copy(esFavorito = !producto.esFavorito)
+                        }
+                    },
                     modifier = Modifier.padding(innerPadding)
                 )
             } else {

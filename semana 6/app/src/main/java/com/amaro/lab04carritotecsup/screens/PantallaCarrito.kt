@@ -15,12 +15,16 @@ import androidx.compose.ui.unit.dp
 import com.amaro.lab04carritotecsup.data.Producto
 
 @Composable
-fun PantallaCarrito(modifier: Modifier = Modifier) {
+fun PantallaCarrito(
+    productos: MutableList<Producto>,
+    onAgregarProducto: (Producto) -> Unit,
+    onEliminarProducto: (Producto) -> Unit,
+    onToggleFavorito: (Producto) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
-
-    val productos = remember { mutableStateListOf<Producto>() }
 
     val subtotal = productos.sumOf { it.precio * it.cantidad }
     val igv = subtotal * 0.18
@@ -72,7 +76,7 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
                 val precioNum = precio.toDoubleOrNull() ?: 0.0
                 val cantidadNum = cantidad.toIntOrNull() ?: 0
                 if (nombre.isNotBlank() && precioNum > 0 && cantidadNum > 0) {
-                    productos.add(Producto(nombre, precioNum, cantidadNum))
+                    onAgregarProducto(Producto(nombre, precioNum, cantidadNum))
                     nombre = ""
                     precio = ""
                     cantidad = ""
@@ -117,13 +121,8 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
                 items(productos) { producto ->
                     TarjetaProducto(
                         producto = producto,
-                        onEliminar = { productos.remove(producto) },
-                        onToggleFavorito = {
-                            val index = productos.indexOf(producto)
-                            if (index != -1) {
-                                productos[index] = producto.copy(esFavorito = !producto.esFavorito)
-                            }
-                        }
+                        onEliminar = { onEliminarProducto(producto) },
+                        onToggleFavorito = { onToggleFavorito(producto) }
                     )
                 }
             }
