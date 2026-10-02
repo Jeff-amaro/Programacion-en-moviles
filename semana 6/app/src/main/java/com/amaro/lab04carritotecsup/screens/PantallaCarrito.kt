@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,7 +37,6 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-
 
         OutlinedTextField(
             value = nombre,
@@ -120,7 +117,13 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
                 items(productos) { producto ->
                     TarjetaProducto(
                         producto = producto,
-                        onEliminar = { productos.remove(producto) }
+                        onEliminar = { productos.remove(producto) },
+                        onToggleFavorito = {
+                            val index = productos.indexOf(producto)
+                            if (index != -1) {
+                                productos[index] = producto.copy(esFavorito = !producto.esFavorito)
+                            }
+                        }
                     )
                 }
             }
