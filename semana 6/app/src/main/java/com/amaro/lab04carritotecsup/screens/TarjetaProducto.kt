@@ -53,6 +53,24 @@ fun TarjetaProducto(
                         contentDescription = "Opciones del producto"
                     )
                 }
+
+                DropdownMenu(
+                    expanded = menuExpandido,
+                    onDismissRequest = { menuExpandido = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Favoritos") },
+                        onClick = { menuExpandido = false }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Compartir") },
+                        onClick = { menuExpandido = false }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Reportar") },
+                        onClick = { menuExpandido = false }
+                    )
+                }
             }
 
             IconButton(onClick = onEliminar) {
