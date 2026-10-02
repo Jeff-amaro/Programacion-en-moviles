@@ -3,6 +3,9 @@ package com.amaro.lab04carritotecsup.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,10 +18,11 @@ import com.amaro.lab04carritotecsup.data.Producto
 @Composable
 fun TarjetaProducto(
     producto: Producto,
-    onEliminar: () -> Unit
+    onEliminar: () -> Unit,
+    onToggleFavorito: () -> Unit = {},
+    onEditar: () -> Unit = {}
 ) {
     val subtotalItem = producto.precio * producto.cantidad
-
     var mostrarMenu by remember { mutableStateOf(false) }
 
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -54,14 +58,57 @@ fun TarjetaProducto(
                         contentDescription = "Opciones"
                     )
                 }
-            }
 
-            IconButton(onClick = onEliminar) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
-                    tint = MaterialTheme.colorScheme.error
-                )
+                DropdownMenu(
+                    expanded = mostrarMenu,
+                    onDismissRequest = { mostrarMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(if (producto.esFavorito) "Quitar de Favoritos" else "Marcar como Favorito")
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (producto.esFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Favorito",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        onClick = {
+                            mostrarMenu = false
+                            onToggleFavorito()
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Editar") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar"
+                            )
+                        },
+                        onClick = {
+                            mostrarMenu = false
+                            onEditar()
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Eliminar") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        onClick = {
+                            mostrarMenu = false
+                            onEliminar()
+                        }
+                    )
+                }
             }
         }
     }
