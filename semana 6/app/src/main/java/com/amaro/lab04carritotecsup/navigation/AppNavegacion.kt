@@ -1,14 +1,18 @@
 package com.amaro.lab04carritotecsup.navigation
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.amaro.lab04carritotecsup.data.Producto
-import com.amaro.lab04carritotecsup.screens.PantallaCarrito
-import com.amaro.lab04carritotecsup.screens.PantallaFavoritos
+import com.amaro.lab04carritotecsup.screens.AppDrawer
+import com.amaro.lab04carritotecsup.screens.TarjetaProducto
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -16,17 +20,31 @@ import kotlinx.coroutines.launch
 fun AppNavegacion() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var pantallaActual by remember { mutableStateOf("carrito") }
+    var destinoActual by remember { mutableStateOf("inicio") }
 
-    val productos = remember { mutableStateListOf<Producto>() }
+    var productos by remember {
+        mutableStateOf(
+            listOf(
+                Producto(id = 1, nombre = "Audífonos", precio = 89.00, cantidad = 1, esFavorito = false),
+                Producto(id = 2, nombre = "Smartwatch", precio = 199.00, cantidad = 1, esFavorito = false),
+                Producto(id = 3, nombre = "Funda celular", precio = 25.00, cantidad = 2, esFavorito = false)
+            )
+        )
+    }
+
+    val cantidadFavoritos = productos.count { it.esFavorito }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             AppDrawer(
-                pantallaActual = pantallaActual,
-                onNavegar = { pantallaActual = it },
-                onCerrarDrawer = {
+                destinoActual = destinoActual,
+                cantidadFavoritos = cantidadFavoritos,
+                onNavegar = { nuevoDestino ->
+                    destinoActual = nuevoDestino
+                    scope.launch { drawerState.close() }
+                },
+                onCerrarSesion = {
                     scope.launch { drawerState.close() }
                 }
             )
@@ -36,43 +54,74 @@ fun AppNavegacion() {
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(if (pantallaActual == "carrito") "Mi Carrito" else "Mis Favoritos")
+                        Column {
+                            Text(
+                                text = "TECSUP Store",
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Más vendidos",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     },
                     navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch { drawerState.open() }
-                        }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menú")
+                        IconButton(
+                            onClick = {
+                                scope.launch { drawerState.open() }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Abrir Menú"
+                            )
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 )
             }
-        ) { innerPadding ->
-            if (pantallaActual == "carrito") {
-                PantallaCarrito(
-                    productos = productos,
-                    onAgregarProducto = { nuevoProducto -> productos.add(nuevoProducto) },
-                    onEliminarProducto = { producto -> productos.remove(producto) },
-                    onToggleFavorito = { producto ->
-                        val index = productos.indexOf(producto)
-                        if (index != -1) {
-                            productos[index] = producto.copy(esFavorito = !producto.esFavorito)
-                        }
-                    },
-                    modifier = Modifier.padding(innerPadding)
-                )
-            } else {
-                PantallaFavoritos(
-                    productosFavoritos = productos.filter { it.esFavorito },
-                    onEliminar = { producto -> productos.remove(producto) },
-                    onToggleFavorito = { producto ->
-                        val index = productos.indexOf(producto)
-                        if (index != -1) {
-                            productos[index] = producto.copy(esFavorito = !producto.esFavorito)
-                        }
-                    },
-                    modifier = Modifier.padding(innerPadding)
-                )
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(productos, key = { it.id }) { producto ->
+                        TarjetaProducto(
+                            producto = producto,
+                            onEliminar = {
+                                productos = productos.filter { it.id != producto.id }
+                            },
+                            onToggleFavorito = {
+                                productos = productos.map { item ->
+                                    if (item.id == producto.id) {
+                                        item.copy(esFavorito = !item.esFavorito)
+                                    } else {
+                                        item
+                                    }
+                                }
+                            },
+                            onEditarProducto = { productoEditado ->
+                                productos = productos.map { item ->
+                                    if (item.id == productoEditado.id) {
+                                        productoEditado
+                                    } else {
+                                        item
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     }
