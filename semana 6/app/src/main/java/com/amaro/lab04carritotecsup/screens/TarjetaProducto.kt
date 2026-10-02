@@ -3,7 +3,10 @@ package com.amaro.lab04carritotecsup.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,14 +63,25 @@ fun TarjetaProducto(
                 ) {
                     DropdownMenuItem(
                         text = { Text("Favoritos") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Favorite, contentDescription = "Favoritos")
+                        },
                         onClick = { menuExpandido = false }
                     )
+                    HorizontalDivider()
                     DropdownMenuItem(
                         text = { Text("Compartir") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Share, contentDescription = "Compartir")
+                        },
                         onClick = { menuExpandido = false }
                     )
+                    HorizontalDivider()
                     DropdownMenuItem(
                         text = { Text("Reportar") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Warning, contentDescription = "Reportar")
+                        },
                         onClick = { menuExpandido = false }
                     )
                 }
