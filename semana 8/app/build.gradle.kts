@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.tecsup.cafecampus"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.tecsup.cafecampus"
