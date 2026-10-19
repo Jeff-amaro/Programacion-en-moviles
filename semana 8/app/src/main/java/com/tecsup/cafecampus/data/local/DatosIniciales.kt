@@ -9,14 +9,14 @@ object DatosIniciales {
             val usuarios = listOf(
                 Usuario(
                     nombre = "Admin",
-                    correo = "admin@cafecampus.pe",
-                    clave = "123456",
+                    correo = "admin@cafe.test",
+                    clave = "admin",
                     rol = "ADMIN"
                 ),
                 Usuario(
                     nombre = "Juan Pérez",
-                    correo = "juan@cafecampus.pe",
-                    clave = "123456",
+                    correo = "juan@campus.test",
+                    clave = "1234",
                     rol = "CLIENTE"
                 )
             )

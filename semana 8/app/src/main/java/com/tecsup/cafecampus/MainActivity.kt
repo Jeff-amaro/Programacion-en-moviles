@@ -3,45 +3,30 @@ package com.tecsup.cafecampus
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.tecsup.cafecampus.ui.theme.CafeCampusTheme
+import androidx.activity.viewModels
+import com.tecsup.cafecampus.data.local.CafeDatabase
+import com.tecsup.cafecampus.data.prefs.PreferenciasStore
+import com.tecsup.cafecampus.data.repository.CafeRepositoryRoom
+import com.tecsup.cafecampus.ui.navigation.NavCafe
+import com.tecsup.cafecampus.viewmodel.SesionViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private val sesionViewModel: SesionViewModel by viewModels {
+        val database = CafeDatabase.obtener(this)
+        val repository = CafeRepositoryRoom(
+            productoDao = database.productoDao(),
+            usuarioDao = database.usuarioDao(),
+            pedidoDao = database.pedidoDao()
+        )
+        val preferenciasStore = PreferenciasStore(this)
+        SesionViewModel.Factory(repository, preferenciasStore)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            CafeCampusTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            NavCafe(sesionViewModel = sesionViewModel)
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CafeCampusTheme {
-        Greeting("Android")
     }
 }
