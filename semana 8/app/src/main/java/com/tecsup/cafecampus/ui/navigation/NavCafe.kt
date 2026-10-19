@@ -10,22 +10,29 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.tecsup.cafecampus.data.local.entity.Producto
+import com.tecsup.cafecampus.ui.cliente.DetalleProductoScreen
 import com.tecsup.cafecampus.ui.cliente.LoginScreen
+import com.tecsup.cafecampus.ui.cliente.MenuScreen
+import com.tecsup.cafecampus.viewmodel.MenuViewModel
 import com.tecsup.cafecampus.viewmodel.SesionViewModel
 
 sealed class Destino(val ruta: String) {
     object Splash : Destino("splash")
     object Login : Destino("login")
     object MenuCliente : Destino("menu_cliente")
+    object DetalleProducto : Destino("detalle_producto")
     object PanelAdmin : Destino("panel_admin")
 }
 
 @Composable
 fun NavCafe(
-    sesionViewModel: SesionViewModel
+    sesionViewModel: SesionViewModel,
+    menuViewModel: MenuViewModel
 ) {
     val navController = rememberNavController()
     val perfilActivo by sesionViewModel.perfilActivo.collectAsState()
+    var productoSeleccionado by remember { mutableStateOf<Producto?>(null) }
 
     NavHost(
         navController = navController,
@@ -63,8 +70,27 @@ fun NavCafe(
         }
 
         composable(Destino.MenuCliente.ruta) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Menú Principal (Cliente)")
+            MenuScreen(
+                menuViewModel = menuViewModel,
+                sesionViewModel = sesionViewModel,
+                onProductoClick = { producto ->
+                    productoSeleccionado = producto
+                    navController.navigate(Destino.DetalleProducto.ruta)
+                }
+            )
+        }
+
+        composable(Destino.DetalleProducto.ruta) {
+            productoSeleccionado?.let { producto ->
+                DetalleProductoScreen(
+                    producto = producto,
+                    onAgregarAlCarrito = { cantidad, nota ->
+                        menuViewModel.agregar(producto, cantidad, nota)
+                    },
+                    onVolver = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
 

@@ -4,5 +4,6 @@ import com.tecsup.cafecampus.data.local.entity.Producto
 
 data class ItemCarrito(
     val producto: Producto,
-    val cantidad: Int
+    val cantidad: Int,
+    val notas: String = "nota"
 )
