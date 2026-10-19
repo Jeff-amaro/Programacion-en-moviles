@@ -10,15 +10,16 @@ import com.tecsup.cafecampus.data.local.relation.PedidoConDetalle
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface PedidoDao {
-    @Insert
-    suspend fun insertarPedido(pedido: Pedido): Long
+abstract class PedidoDao {
 
     @Insert
-    suspend fun insertarDetalles(detalles: List<DetallePedido>)
+    abstract suspend fun insertarPedido(pedido: Pedido): Long
+
+    @Insert
+    abstract suspend fun insertarDetalles(detalles: List<DetallePedido>): List<Long>
 
     @Transaction
-    suspend fun crearPedido(pedido: Pedido, detalles: List<DetallePedido>): Long {
+    open suspend fun crearPedido(pedido: Pedido, detalles: List<DetallePedido>): Long {
         val pedidoId = insertarPedido(pedido)
         val detallesConId = detalles.map { it.copy(pedidoId = pedidoId.toInt()) }
         insertarDetalles(detallesConId)
@@ -26,23 +27,23 @@ interface PedidoDao {
     }
 
     @Query("UPDATE pedidos SET estado = :estado WHERE id = :id")
-    suspend fun cambiarEstado(id: Int, estado: String)
+    abstract suspend fun cambiarEstado(id: Int, estado: String): Int
 
     @Transaction
     @Query("SELECT * FROM pedidos WHERE clienteId = :clienteId ORDER BY fecha DESC")
-    fun observarPorCliente(clienteId: Int): Flow<List<PedidoConDetalle>>
+    abstract fun observarPorCliente(clienteId: Int): Flow<List<PedidoConDetalle>>
 
     @Transaction
     @Query("SELECT * FROM pedidos WHERE estado = :estado ORDER BY fecha DESC")
-    fun observarPorEstado(estado: String): Flow<List<PedidoConDetalle>>
+    abstract fun observarPorEstado(estado: String): Flow<List<PedidoConDetalle>>
 
     @Transaction
     @Query("SELECT * FROM pedidos WHERE id = :id LIMIT 1")
-    fun observarUno(id: Int): Flow<PedidoConDetalle?>
+    abstract fun observarUno(id: Int): Flow<PedidoConDetalle?>
 
     @Query("SELECT COALESCE(SUM(total), 0.0) FROM pedidos WHERE fecha >= :inicioMillis AND estado != 'CANCELADO'")
-    fun ventasDesde(inicioMillis: Long): Flow<Double>
+    abstract fun ventasDesde(inicioMillis: Long): Flow<Double>
 
     @Query("SELECT COUNT(*) FROM pedidos WHERE estado = :estado")
-    fun cantidadPorEstado(estado: String): Flow<Int>
+    abstract fun cantidadPorEstado(estado: String): Flow<Int>
 }
