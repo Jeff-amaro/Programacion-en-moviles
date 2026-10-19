@@ -9,10 +9,11 @@ import com.tecsup.cafecampus.data.local.entity.Usuario
 data class PedidoConDetalle(
     @Embedded val pedido: Pedido,
     @Relation(
+        entity = DetallePedido::class,
         parentColumn = "id",
         entityColumn = "pedidoId"
     )
-    val detalles: List<DetallePedido>,
+    val detalles: List<DetalleConProducto>,
     @Relation(
         parentColumn = "clienteId",
         entityColumn = "id"

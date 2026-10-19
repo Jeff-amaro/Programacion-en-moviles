@@ -112,7 +112,9 @@ fun ProductoGrafico(nombre: String, modifier: Modifier = Modifier) {
 fun MenuScreen(
     menuViewModel: MenuViewModel,
     sesionViewModel: SesionViewModel,
-    onProductoClick: (Producto) -> Unit
+    onProductoClick: (Producto) -> Unit,
+    onCarritoClick: () -> Unit,
+    onPedidosClick: () -> Unit
 ) {
     val productos by menuViewModel.productos.collectAsState()
     val carrito by menuViewModel.carrito.collectAsState()
@@ -146,7 +148,7 @@ fun MenuScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = onPedidosClick,
                     icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Pedidos", tint = Color.Gray) },
                     label = { Text("Pedidos", color = Color.Gray) }
                 )
@@ -200,7 +202,7 @@ fun MenuScreen(
                     }
                 ) {
                     IconButton(
-                        onClick = { },
+                        onClick = onCarritoClick,
                         modifier = Modifier
                             .background(Color(0xFFF3F4F6), CircleShape)
                             .size(44.dp)

@@ -9,6 +9,7 @@ import com.tecsup.cafecampus.data.prefs.PreferenciasStore
 import com.tecsup.cafecampus.data.repository.CafeRepositoryRoom
 import com.tecsup.cafecampus.ui.navigation.NavCafe
 import com.tecsup.cafecampus.viewmodel.MenuViewModel
+import com.tecsup.cafecampus.viewmodel.PedidosClienteViewModel
 import com.tecsup.cafecampus.viewmodel.SesionViewModel
 
 class MainActivity : ComponentActivity() {
@@ -34,12 +35,23 @@ class MainActivity : ComponentActivity() {
         MenuViewModel.Factory(repository)
     }
 
+    private val pedidosViewModel: PedidosClienteViewModel by viewModels {
+        val database = CafeDatabase.obtener(this)
+        val repository = CafeRepositoryRoom(
+            productoDao = database.productoDao(),
+            usuarioDao = database.usuarioDao(),
+            pedidoDao = database.pedidoDao()
+        )
+        PedidosClienteViewModel.Factory(repository, clienteId = 2)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             NavCafe(
                 sesionViewModel = sesionViewModel,
-                menuViewModel = menuViewModel
+                menuViewModel = menuViewModel,
+                pedidosViewModel = pedidosViewModel
             )
         }
     }

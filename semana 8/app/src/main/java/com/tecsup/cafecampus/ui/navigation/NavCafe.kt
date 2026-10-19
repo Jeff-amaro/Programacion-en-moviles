@@ -11,10 +11,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.tecsup.cafecampus.data.local.entity.Producto
-import com.tecsup.cafecampus.ui.cliente.DetalleProductoScreen
-import com.tecsup.cafecampus.ui.cliente.LoginScreen
-import com.tecsup.cafecampus.ui.cliente.MenuScreen
+import com.tecsup.cafecampus.ui.cliente.*
 import com.tecsup.cafecampus.viewmodel.MenuViewModel
+import com.tecsup.cafecampus.viewmodel.PedidosClienteViewModel
 import com.tecsup.cafecampus.viewmodel.SesionViewModel
 
 sealed class Destino(val ruta: String) {
@@ -22,13 +21,17 @@ sealed class Destino(val ruta: String) {
     object Login : Destino("login")
     object MenuCliente : Destino("menu_cliente")
     object DetalleProducto : Destino("detalle_producto")
+    object ConfirmarPedido : Destino("confirmar_pedido")
+    object Seguimiento : Destino("seguimiento")
+    object MisPedidos : Destino("mis_pedidos")
     object PanelAdmin : Destino("panel_admin")
 }
 
 @Composable
 fun NavCafe(
     sesionViewModel: SesionViewModel,
-    menuViewModel: MenuViewModel
+    menuViewModel: MenuViewModel,
+    pedidosViewModel: PedidosClienteViewModel
 ) {
     val navController = rememberNavController()
     val perfilActivo by sesionViewModel.perfilActivo.collectAsState()
@@ -76,6 +79,12 @@ fun NavCafe(
                 onProductoClick = { producto ->
                     productoSeleccionado = producto
                     navController.navigate(Destino.DetalleProducto.ruta)
+                },
+                onCarritoClick = {
+                    navController.navigate(Destino.ConfirmarPedido.ruta)
+                },
+                onPedidosClick = {
+                    navController.navigate(Destino.MisPedidos.ruta)
                 }
             )
         }
@@ -92,6 +101,53 @@ fun NavCafe(
                     }
                 )
             }
+        }
+
+        composable(Destino.ConfirmarPedido.ruta) {
+            ConfirmarPedidoScreen(
+                menuViewModel = menuViewModel,
+                pedidosViewModel = pedidosViewModel,
+                onPedidoConfirmado = { id ->
+                    pedidosViewModel.seleccionarPedido(id)
+                    navController.navigate(Destino.Seguimiento.ruta) {
+                        popUpTo(Destino.MenuCliente.ruta)
+                    }
+                },
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Destino.Seguimiento.ruta) {
+            SeguimientoScreen(
+                pedidosViewModel = pedidosViewModel,
+                onVolver = { navController.popBackStack() },
+                onIrAMenu = {
+                    navController.navigate(Destino.MenuCliente.ruta) {
+                        popUpTo(Destino.MenuCliente.ruta) { inclusive = true }
+                    }
+                },
+                onIrAPedidos = {
+                    navController.navigate(Destino.MisPedidos.ruta)
+                }
+            )
+        }
+
+        composable(Destino.MisPedidos.ruta) {
+            MisPedidosScreen(
+                pedidosViewModel = pedidosViewModel,
+                onPedidoClick = { id ->
+                    pedidosViewModel.seleccionarPedido(id)
+                    navController.navigate(Destino.Seguimiento.ruta)
+                },
+                onIrAMenu = {
+                    navController.navigate(Destino.MenuCliente.ruta) {
+                        popUpTo(Destino.MenuCliente.ruta) { inclusive = true }
+                    }
+                },
+                onVolver = { navController.popBackStack() }
+            )
         }
 
         composable(Destino.PanelAdmin.ruta) {
