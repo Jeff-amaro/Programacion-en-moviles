@@ -8,6 +8,7 @@ import com.tecsup.cafecampus.data.local.CafeDatabase
 import com.tecsup.cafecampus.data.prefs.PreferenciasStore
 import com.tecsup.cafecampus.data.repository.CafeRepositoryRoom
 import com.tecsup.cafecampus.ui.navigation.NavCafe
+import com.tecsup.cafecampus.viewmodel.MenuAdminViewModel
 import com.tecsup.cafecampus.viewmodel.MenuViewModel
 import com.tecsup.cafecampus.viewmodel.PanelAdminViewModel
 import com.tecsup.cafecampus.viewmodel.PedidosAdminViewModel
@@ -67,6 +68,16 @@ class MainActivity : ComponentActivity() {
         PedidosAdminViewModel.Factory(repository)
     }
 
+    private val menuAdminViewModel: MenuAdminViewModel by viewModels {
+        val database = CafeDatabase.obtener(this)
+        val repository = CafeRepositoryRoom(
+            productoDao = database.productoDao(),
+            usuarioDao = database.usuarioDao(),
+            pedidoDao = database.pedidoDao()
+        )
+        MenuAdminViewModel.Factory(repository)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -75,7 +86,8 @@ class MainActivity : ComponentActivity() {
                 menuViewModel = menuViewModel,
                 pedidosViewModel = pedidosViewModel,
                 panelAdminViewModel = panelAdminViewModel,
-                pedidosAdminViewModel = pedidosAdminViewModel
+                pedidosAdminViewModel = pedidosAdminViewModel,
+                menuAdminViewModel = menuAdminViewModel
             )
         }
     }

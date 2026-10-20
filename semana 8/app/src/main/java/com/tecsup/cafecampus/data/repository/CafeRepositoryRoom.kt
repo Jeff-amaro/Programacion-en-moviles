@@ -89,4 +89,23 @@ class CafeRepositoryRoom(
     override suspend fun actualizarEstadoPedido(pedidoId: Int, nuevoEstado: String) {
         pedidoDao.actualizarEstadoPedido(pedidoId, nuevoEstado)
     }
+    override fun observarTodosLosProductos(): Flow<List<Producto>> {
+        return productoDao.observarTodosLosProductos()
+    }
+
+    override suspend fun guardarProducto(producto: Producto) {
+        if (producto.id == 0) {
+            productoDao.insertarProducto(producto)
+        } else {
+            productoDao.actualizarProducto(producto)
+        }
+    }
+
+    override suspend fun eliminarProducto(producto: Producto) {
+        productoDao.eliminarProducto(producto)
+    }
+
+    override suspend fun alternarDisponibilidad(producto: Producto) {
+        productoDao.actualizarDisponible(producto.id, !producto.disponible)
+    }
 }

@@ -32,6 +32,8 @@ fun PedidosAdminScreen(
     pedidosAdminViewModel: PedidosAdminViewModel,
     onPedidoClick: (Int) -> Unit,
     onIrAPanel: () -> Unit,
+    onIrAMenu: () -> Unit,
+    onIrAAjustes: () -> Unit,
     onVolver: () -> Unit
 ) {
     val estadoActual by pedidosAdminViewModel.estadoSeleccionado.collectAsState()
@@ -87,13 +89,13 @@ fun PedidosAdminScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = onIrAMenu,
                     icon = { Icon(Icons.Default.LocalCafe, contentDescription = "Menú", tint = Color.Gray) },
                     label = { Text("Menú", color = Color.Gray) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = onIrAAjustes,
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Ajustes", tint = Color.Gray) },
                     label = { Text("Ajustes", color = Color.Gray) }
                 )

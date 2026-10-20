@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
@@ -27,7 +26,9 @@ import com.tecsup.cafecampus.viewmodel.PanelAdminViewModel
 @Composable
 fun PanelScreen(
     panelAdminViewModel: PanelAdminViewModel,
-    onIrAPedidos: () -> Unit
+    onIrAPedidos: () -> Unit,
+    onIrAMenu: () -> Unit,
+    onIrAAjustes: () -> Unit
 ) {
     val nuevosCount by panelAdminViewModel.nuevos.collectAsState()
     val preparandoCount by panelAdminViewModel.preparando.collectAsState()
@@ -58,13 +59,13 @@ fun PanelScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = onIrAMenu,
                     icon = { Icon(Icons.Default.LocalCafe, contentDescription = "Menú", tint = Color.Gray) },
                     label = { Text("Menú", color = Color.Gray) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = onIrAAjustes,
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Ajustes", tint = Color.Gray) },
                     label = { Text("Ajustes", color = Color.Gray) }
                 )

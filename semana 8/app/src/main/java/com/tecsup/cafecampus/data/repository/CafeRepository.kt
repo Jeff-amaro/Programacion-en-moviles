@@ -20,4 +20,8 @@ interface CafeRepository {
     fun observarCantidadPorEstado(estado: EstadoPedido): Flow<Int>
     fun observarTodosLosPedidos(): Flow<List<PedidoConDetalle>>
     suspend fun actualizarEstadoPedido(pedidoId: Int, nuevoEstado: String)
+    fun observarTodosLosProductos(): Flow<List<Producto>>
+    suspend fun guardarProducto(producto: Producto)
+    suspend fun eliminarProducto(producto: Producto)
+    suspend fun alternarDisponibilidad(producto: Producto)
 }

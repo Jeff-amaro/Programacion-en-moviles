@@ -10,10 +10,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.tecsup.cafecampus.data.local.entity.Producto
+import com.tecsup.cafecampus.ui.admin.AjustesScreen
 import com.tecsup.cafecampus.ui.admin.DetallePedidoAdminScreen
+import com.tecsup.cafecampus.ui.admin.FormularioProductoScreen
+import com.tecsup.cafecampus.ui.admin.MenuAdminScreen
 import com.tecsup.cafecampus.ui.admin.PanelScreen
 import com.tecsup.cafecampus.ui.admin.PedidosAdminScreen
 import com.tecsup.cafecampus.ui.cliente.*
+import com.tecsup.cafecampus.viewmodel.MenuAdminViewModel
 import com.tecsup.cafecampus.viewmodel.MenuViewModel
 import com.tecsup.cafecampus.viewmodel.PanelAdminViewModel
 import com.tecsup.cafecampus.viewmodel.PedidosAdminViewModel
@@ -31,6 +35,9 @@ sealed class Destino(val ruta: String) {
     object PanelAdmin : Destino("panel_admin")
     object PedidosAdmin : Destino("pedidos_admin")
     object DetallePedidoAdmin : Destino("detalle_pedido_admin")
+    object MenuAdmin : Destino("menu_admin")
+    object FormularioProducto : Destino("formulario_producto")
+    object Ajustes : Destino("ajustes")
 }
 
 @Composable
@@ -39,11 +46,13 @@ fun NavCafe(
     menuViewModel: MenuViewModel,
     pedidosViewModel: PedidosClienteViewModel,
     panelAdminViewModel: PanelAdminViewModel,
-    pedidosAdminViewModel: PedidosAdminViewModel
+    pedidosAdminViewModel: PedidosAdminViewModel,
+    menuAdminViewModel: MenuAdminViewModel
 ) {
     val navController = rememberNavController()
     val perfilActivo by sesionViewModel.perfilActivo.collectAsState()
     var productoSeleccionado by remember { mutableStateOf<Producto?>(null) }
+    var productoAEditar by remember { mutableStateOf<Producto?>(null) }
 
     NavHost(
         navController = navController,
@@ -163,6 +172,12 @@ fun NavCafe(
                 panelAdminViewModel = panelAdminViewModel,
                 onIrAPedidos = {
                     navController.navigate(Destino.PedidosAdmin.ruta)
+                },
+                onIrAMenu = {
+                    navController.navigate(Destino.MenuAdmin.ruta)
+                },
+                onIrAAjustes = {
+                    navController.navigate(Destino.Ajustes.ruta)
                 }
             )
         }
@@ -179,6 +194,12 @@ fun NavCafe(
                         popUpTo(Destino.PanelAdmin.ruta) { inclusive = true }
                     }
                 },
+                onIrAMenu = {
+                    navController.navigate(Destino.MenuAdmin.ruta)
+                },
+                onIrAAjustes = {
+                    navController.navigate(Destino.Ajustes.ruta)
+                },
                 onVolver = { navController.popBackStack() }
             )
         }
@@ -186,6 +207,69 @@ fun NavCafe(
         composable(Destino.DetallePedidoAdmin.ruta) {
             DetallePedidoAdminScreen(
                 pedidosAdminViewModel = pedidosAdminViewModel,
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destino.MenuAdmin.ruta) {
+            MenuAdminScreen(
+                menuAdminViewModel = menuAdminViewModel,
+                onAgregarProducto = {
+                    productoAEditar = null
+                    navController.navigate(Destino.FormularioProducto.ruta)
+                },
+                onEditarProducto = { prod ->
+                    productoAEditar = prod
+                    navController.navigate(Destino.FormularioProducto.ruta)
+                },
+                onIrAPanel = {
+                    navController.navigate(Destino.PanelAdmin.ruta) {
+                        popUpTo(Destino.PanelAdmin.ruta) { inclusive = true }
+                    }
+                },
+                onIrAPedidos = {
+                    navController.navigate(Destino.PedidosAdmin.ruta)
+                },
+                onIrAAjustes = {
+                    navController.navigate(Destino.Ajustes.ruta)
+                },
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destino.FormularioProducto.ruta) {
+            FormularioProductoScreen(
+                menuAdminViewModel = menuAdminViewModel,
+                productoExistente = productoAEditar,
+                onGuardadoExitoso = { navController.popBackStack() },
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destino.Ajustes.ruta) {
+            AjustesScreen(
+                sesionViewModel = sesionViewModel,
+                onCambiarPerfil = {
+                    navController.navigate(Destino.MenuCliente.ruta) {
+                        popUpTo(Destino.PanelAdmin.ruta) { inclusive = true }
+                    }
+                },
+                onCerrarSesion = {
+                    navController.navigate(Destino.Login.ruta) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onIrAPanel = {
+                    navController.navigate(Destino.PanelAdmin.ruta) {
+                        popUpTo(Destino.PanelAdmin.ruta) { inclusive = true }
+                    }
+                },
+                onIrAPedidos = {
+                    navController.navigate(Destino.PedidosAdmin.ruta)
+                },
+                onIrAMenu = {
+                    navController.navigate(Destino.MenuAdmin.ruta)
+                },
                 onVolver = { navController.popBackStack() }
             )
         }
