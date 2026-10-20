@@ -3,7 +3,6 @@ package com.tecsup.cafecampus.ui.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,8 +10,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.tecsup.cafecampus.data.local.entity.Producto
+import com.tecsup.cafecampus.ui.admin.DetallePedidoAdminScreen
+import com.tecsup.cafecampus.ui.admin.PanelScreen
+import com.tecsup.cafecampus.ui.admin.PedidosAdminScreen
 import com.tecsup.cafecampus.ui.cliente.*
 import com.tecsup.cafecampus.viewmodel.MenuViewModel
+import com.tecsup.cafecampus.viewmodel.PanelAdminViewModel
+import com.tecsup.cafecampus.viewmodel.PedidosAdminViewModel
 import com.tecsup.cafecampus.viewmodel.PedidosClienteViewModel
 import com.tecsup.cafecampus.viewmodel.SesionViewModel
 
@@ -25,13 +29,17 @@ sealed class Destino(val ruta: String) {
     object Seguimiento : Destino("seguimiento")
     object MisPedidos : Destino("mis_pedidos")
     object PanelAdmin : Destino("panel_admin")
+    object PedidosAdmin : Destino("pedidos_admin")
+    object DetallePedidoAdmin : Destino("detalle_pedido_admin")
 }
 
 @Composable
 fun NavCafe(
     sesionViewModel: SesionViewModel,
     menuViewModel: MenuViewModel,
-    pedidosViewModel: PedidosClienteViewModel
+    pedidosViewModel: PedidosClienteViewModel,
+    panelAdminViewModel: PanelAdminViewModel,
+    pedidosAdminViewModel: PedidosAdminViewModel
 ) {
     val navController = rememberNavController()
     val perfilActivo by sesionViewModel.perfilActivo.collectAsState()
@@ -151,9 +159,35 @@ fun NavCafe(
         }
 
         composable(Destino.PanelAdmin.ruta) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Panel de Administración (Admin)")
-            }
+            PanelScreen(
+                panelAdminViewModel = panelAdminViewModel,
+                onIrAPedidos = {
+                    navController.navigate(Destino.PedidosAdmin.ruta)
+                }
+            )
+        }
+
+        composable(Destino.PedidosAdmin.ruta) {
+            PedidosAdminScreen(
+                pedidosAdminViewModel = pedidosAdminViewModel,
+                onPedidoClick = { id ->
+                    pedidosAdminViewModel.seleccionarPedido(id)
+                    navController.navigate(Destino.DetallePedidoAdmin.ruta)
+                },
+                onIrAPanel = {
+                    navController.navigate(Destino.PanelAdmin.ruta) {
+                        popUpTo(Destino.PanelAdmin.ruta) { inclusive = true }
+                    }
+                },
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destino.DetallePedidoAdmin.ruta) {
+            DetallePedidoAdminScreen(
+                pedidosAdminViewModel = pedidosAdminViewModel,
+                onVolver = { navController.popBackStack() }
+            )
         }
     }
 }

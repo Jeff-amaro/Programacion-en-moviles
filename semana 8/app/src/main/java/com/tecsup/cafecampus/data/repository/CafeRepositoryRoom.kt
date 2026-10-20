@@ -82,4 +82,11 @@ class CafeRepositoryRoom(
     override fun observarCantidadPorEstado(estado: EstadoPedido): Flow<Int> {
         return pedidoDao.cantidadPorEstado(estado.name)
     }
+    override fun observarTodosLosPedidos(): Flow<List<PedidoConDetalle>> {
+        return pedidoDao.observarTodosLosPedidos()
+    }
+
+    override suspend fun actualizarEstadoPedido(pedidoId: Int, nuevoEstado: String) {
+        pedidoDao.actualizarEstadoPedido(pedidoId, nuevoEstado)
+    }
 }

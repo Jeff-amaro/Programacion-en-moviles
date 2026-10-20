@@ -46,4 +46,11 @@ abstract class PedidoDao {
 
     @Query("SELECT COUNT(*) FROM pedidos WHERE estado = :estado")
     abstract fun cantidadPorEstado(estado: String): Flow<Int>
+
+    @Transaction
+    @Query("SELECT * FROM pedidos ORDER BY id DESC")
+    abstract fun observarTodosLosPedidos(): Flow<List<PedidoConDetalle>>
+
+    @Query("UPDATE pedidos SET estado = :nuevoEstado WHERE id = :pedidoId")
+    abstract suspend fun actualizarEstadoPedido(pedidoId: Int, nuevoEstado: String)
 }

@@ -18,4 +18,6 @@ interface CafeRepository {
     fun observarPedido(id: Int): Flow<PedidoConDetalle?>
     fun observarVentasHoy(inicioMillis: Long): Flow<Double>
     fun observarCantidadPorEstado(estado: EstadoPedido): Flow<Int>
+    fun observarTodosLosPedidos(): Flow<List<PedidoConDetalle>>
+    suspend fun actualizarEstadoPedido(pedidoId: Int, nuevoEstado: String)
 }
