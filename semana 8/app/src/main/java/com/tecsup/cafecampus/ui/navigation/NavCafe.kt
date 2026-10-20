@@ -171,13 +171,13 @@ fun NavCafe(
             PanelScreen(
                 panelAdminViewModel = panelAdminViewModel,
                 onIrAPedidos = {
-                    navController.navigate(Destino.PedidosAdmin.ruta)
+                    navController.navigate(Destino.PedidosAdmin.ruta) { launchSingleTop = true }
                 },
                 onIrAMenu = {
-                    navController.navigate(Destino.MenuAdmin.ruta)
+                    navController.navigate(Destino.MenuAdmin.ruta) { launchSingleTop = true }
                 },
                 onIrAAjustes = {
-                    navController.navigate(Destino.Ajustes.ruta)
+                    navController.navigate(Destino.Ajustes.ruta) { launchSingleTop = true }
                 }
             )
         }
@@ -195,10 +195,10 @@ fun NavCafe(
                     }
                 },
                 onIrAMenu = {
-                    navController.navigate(Destino.MenuAdmin.ruta)
+                    navController.navigate(Destino.MenuAdmin.ruta) { launchSingleTop = true }
                 },
                 onIrAAjustes = {
-                    navController.navigate(Destino.Ajustes.ruta)
+                    navController.navigate(Destino.Ajustes.ruta) { launchSingleTop = true }
                 },
                 onVolver = { navController.popBackStack() }
             )
@@ -228,10 +228,10 @@ fun NavCafe(
                     }
                 },
                 onIrAPedidos = {
-                    navController.navigate(Destino.PedidosAdmin.ruta)
+                    navController.navigate(Destino.PedidosAdmin.ruta) { launchSingleTop = true }
                 },
                 onIrAAjustes = {
-                    navController.navigate(Destino.Ajustes.ruta)
+                    navController.navigate(Destino.Ajustes.ruta) { launchSingleTop = true }
                 },
                 onVolver = { navController.popBackStack() }
             )
@@ -251,7 +251,7 @@ fun NavCafe(
                 sesionViewModel = sesionViewModel,
                 onCambiarPerfil = {
                     navController.navigate(Destino.MenuCliente.ruta) {
-                        popUpTo(Destino.PanelAdmin.ruta) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 onCerrarSesion = {
@@ -265,10 +265,10 @@ fun NavCafe(
                     }
                 },
                 onIrAPedidos = {
-                    navController.navigate(Destino.PedidosAdmin.ruta)
+                    navController.navigate(Destino.PedidosAdmin.ruta) { launchSingleTop = true }
                 },
                 onIrAMenu = {
-                    navController.navigate(Destino.MenuAdmin.ruta)
+                    navController.navigate(Destino.MenuAdmin.ruta) { launchSingleTop = true }
                 },
                 onVolver = { navController.popBackStack() }
             )

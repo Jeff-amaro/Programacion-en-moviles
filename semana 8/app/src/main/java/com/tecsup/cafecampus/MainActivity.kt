@@ -4,10 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.tecsup.cafecampus.data.local.CafeDatabase
 import com.tecsup.cafecampus.data.prefs.PreferenciasStore
 import com.tecsup.cafecampus.data.repository.CafeRepositoryRoom
 import com.tecsup.cafecampus.ui.navigation.NavCafe
+import com.tecsup.cafecampus.ui.theme.CafeCampusTheme
 import com.tecsup.cafecampus.viewmodel.MenuAdminViewModel
 import com.tecsup.cafecampus.viewmodel.MenuViewModel
 import com.tecsup.cafecampus.viewmodel.PanelAdminViewModel
@@ -81,14 +85,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            NavCafe(
-                sesionViewModel = sesionViewModel,
-                menuViewModel = menuViewModel,
-                pedidosViewModel = pedidosViewModel,
-                panelAdminViewModel = panelAdminViewModel,
-                pedidosAdminViewModel = pedidosAdminViewModel,
-                menuAdminViewModel = menuAdminViewModel
-            )
+            val modoOscuroActivo by sesionViewModel.modoOscuro.collectAsState()
+
+            CafeCampusTheme(darkTheme = modoOscuroActivo) {
+                NavCafe(
+                    sesionViewModel = sesionViewModel,
+                    menuViewModel = menuViewModel,
+                    pedidosViewModel = pedidosViewModel,
+                    panelAdminViewModel = panelAdminViewModel,
+                    pedidosAdminViewModel = pedidosAdminViewModel,
+                    menuAdminViewModel = menuAdminViewModel
+                )
+            }
         }
     }
 }

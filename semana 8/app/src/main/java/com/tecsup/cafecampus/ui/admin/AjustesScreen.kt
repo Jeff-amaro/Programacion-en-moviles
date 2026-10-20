@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,11 +39,11 @@ fun AjustesScreen(
     onIrAMenu: () -> Unit,
     onVolver: () -> Unit
 ) {
-    val colorPurpura = Color(0xFF4F46E5)
+    val modoOscuro by sesionViewModel.modoOscuro.collectAsState()
+    val notificaciones by sesionViewModel.notificaciones.collectAsState()
+    val recibirPedidos by sesionViewModel.recibirPedidos.collectAsState()
 
-    var modoOscuro by remember { mutableStateOf(false) }
-    var notificaciones by remember { mutableStateOf(true) }
-    var recibirPedidos by remember { mutableStateOf(true) }
+    val colorPurpura = Color(0xFF4F46E5)
 
     Scaffold(
         topBar = {
@@ -51,7 +53,7 @@ fun AjustesScreen(
                         text = "Ajustes",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
@@ -59,16 +61,16 @@ fun AjustesScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color(0xFF1F2937)
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFFAFAFA))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
@@ -97,7 +99,7 @@ fun AjustesScreen(
                 )
             }
         },
-        containerColor = Color(0xFFFAFAFA)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -115,7 +117,7 @@ fun AjustesScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = BorderStroke(1.dp, Color(0xFFE5E7EB))
                     ) {
                         Row(
@@ -141,7 +143,7 @@ fun AjustesScreen(
                                     text = "Administrador",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1F2937)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "admin@cafe.test",
@@ -170,7 +172,10 @@ fun AjustesScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onCambiarPerfil() },
+                            .clickable {
+                                sesionViewModel.cambiarPerfil("CLIENTE")
+                                onCambiarPerfil()
+                            },
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = colorPurpura)
                     ) {
@@ -213,7 +218,7 @@ fun AjustesScreen(
                         text = "Preferencias",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -221,7 +226,7 @@ fun AjustesScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = BorderStroke(1.dp, Color(0xFFE5E7EB))
                     ) {
                         Column(
@@ -234,12 +239,12 @@ fun AjustesScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Modo oscuro", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                                    Text("Modo oscuro", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                     Text("Cambia el tema de la app", fontSize = 12.sp, color = Color(0xFF9CA3AF))
                                 }
                                 Switch(
                                     checked = modoOscuro,
-                                    onCheckedChange = { modoOscuro = it },
+                                    onCheckedChange = { sesionViewModel.setModoOscuro(it) },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = Color.White,
                                         checkedTrackColor = colorPurpura
@@ -255,12 +260,12 @@ fun AjustesScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Notificaciones", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                                    Text("Notificaciones", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                     Text("Avisar nuevos pedidos", fontSize = 12.sp, color = Color(0xFF9CA3AF))
                                 }
                                 Switch(
                                     checked = notificaciones,
-                                    onCheckedChange = { notificaciones = it },
+                                    onCheckedChange = { sesionViewModel.setNotificaciones(it) },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = Color.White,
                                         checkedTrackColor = colorPurpura
@@ -276,12 +281,12 @@ fun AjustesScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Recibir pedidos", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                                    Text("Recibir pedidos", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                     Text("Abrir o cerrar la cafetería", fontSize = 12.sp, color = Color(0xFF9CA3AF))
                                 }
                                 Switch(
                                     checked = recibirPedidos,
-                                    onCheckedChange = { recibirPedidos = it },
+                                    onCheckedChange = { sesionViewModel.setRecibirPedidos(it) },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = Color.White,
                                         checkedTrackColor = colorPurpura
@@ -323,7 +328,10 @@ fun AjustesScreen(
                 modifier = Modifier.padding(vertical = 16.dp)
             ) {
                 OutlinedButton(
-                    onClick = onCerrarSesion,
+                    onClick = {
+                        sesionViewModel.cerrarSesion()
+                        onCerrarSesion()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),

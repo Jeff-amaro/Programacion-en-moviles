@@ -55,7 +55,7 @@ fun PedidosAdminScreen(
                         text = "Pedidos",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
@@ -63,16 +63,16 @@ fun PedidosAdminScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color(0xFF1F2937)
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFFAFAFA))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
@@ -101,7 +101,7 @@ fun PedidosAdminScreen(
                 )
             }
         },
-        containerColor = Color(0xFFFAFAFA)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -122,10 +122,10 @@ fun PedidosAdminScreen(
                             .weight(1f)
                             .clickable { pedidosAdminViewModel.seleccionarEstado(clave) },
                         shape = RoundedCornerShape(20.dp),
-                        color = if (seleccionada) colorPurpura else Color.White,
+                        color = if (seleccionada) colorPurpura else MaterialTheme.colorScheme.surface,
                         border = BorderStroke(
                             1.dp,
-                            if (seleccionada) colorPurpura else Color(0xFFE5E7EB)
+                            if (seleccionada) colorPurpura else Color(0xFF374151)
                         )
                     ) {
                         Box(
@@ -134,7 +134,7 @@ fun PedidosAdminScreen(
                         ) {
                             Text(
                                 text = etiqueta,
-                                color = if (seleccionada) Color.White else Color(0xFF6B7280),
+                                color = if (seleccionada) Color.White else MaterialTheme.colorScheme.onSurface,
                                 fontSize = 13.sp,
                                 fontWeight = if (seleccionada) FontWeight.Bold else FontWeight.Normal
                             )
@@ -210,8 +210,8 @@ private fun TarjetaPedidoAdmin(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, Color(0xFF374151)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
@@ -245,13 +245,13 @@ private fun TarjetaPedidoAdmin(
                             text = "#%04d  %s".format(item.pedido.id, clienteNombre),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = if (resumenProductos.isNotBlank()) resumenProductos else "Pedido general",
                             fontSize = 12.sp,
-                            color = Color(0xFF6B7280)
+                            color = Color(0xFF9CA3AF)
                         )
                     }
                 }

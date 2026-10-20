@@ -42,7 +42,7 @@ fun PanelScreen(
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
@@ -71,7 +71,7 @@ fun PanelScreen(
                 )
             }
         },
-        containerColor = Color(0xFFFAFAFA)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -92,7 +92,7 @@ fun PanelScreen(
                             text = "Panel de control",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Cafetería · Hoy",
@@ -104,7 +104,7 @@ fun PanelScreen(
                         Icon(
                             imageVector = Icons.Default.Notifications,
                             contentDescription = "Notificaciones",
-                            tint = Color(0xFF1F2937),
+                            tint = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -181,8 +181,8 @@ fun PanelScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color(0xFFF3F4F6))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, Color(0xFF374151))
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp)
@@ -191,7 +191,7 @@ fun PanelScreen(
                             text = "Pedidos por hora",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         GraficoBarrasHoras(colorPurpura = colorPurpura)
@@ -209,7 +209,7 @@ fun PanelScreen(
                         text = "Nuevos pedidos",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Ver todos",
@@ -245,8 +245,8 @@ fun PanelScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        border = BorderStroke(1.dp, Color(0xFFF3F4F6))
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = BorderStroke(1.dp, Color(0xFF374151))
                     ) {
                         Row(
                             modifier = Modifier
@@ -262,13 +262,13 @@ fun PanelScreen(
                                     text = "#%04d  %s".format(item.pedido.id, nombreFormateado),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1F2937)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = subtitulo,
                                     fontSize = 12.sp,
-                                    color = Color(0xFF6B7280)
+                                    color = Color(0xFF9CA3AF)
                                 )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
@@ -361,7 +361,7 @@ private fun GraficoBarrasHoras(colorPurpura: Color) {
                     text = "$cantidad",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1F2937)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Box(

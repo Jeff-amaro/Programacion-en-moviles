@@ -56,7 +56,7 @@ fun MenuAdminScreen(
                         text = "Gestión del menú",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
@@ -64,11 +64,11 @@ fun MenuAdminScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color(0xFF1F2937)
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFFAFAFA))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         floatingActionButton = {
@@ -83,7 +83,7 @@ fun MenuAdminScreen(
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
@@ -112,7 +112,7 @@ fun MenuAdminScreen(
                 )
             }
         },
-        containerColor = Color(0xFFFAFAFA)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -131,15 +131,15 @@ fun MenuAdminScreen(
                     Surface(
                         modifier = Modifier.clickable { menuAdminViewModel.seleccionarCategoria(cat) },
                         shape = RoundedCornerShape(20.dp),
-                        color = if (seleccionada) colorPurpura else Color.White,
+                        color = if (seleccionada) colorPurpura else MaterialTheme.colorScheme.surface,
                         border = BorderStroke(
                             1.dp,
-                            if (seleccionada) colorPurpura else Color(0xFFE5E7EB)
+                            if (seleccionada) colorPurpura else Color(0xFF374151)
                         )
                     ) {
                         Text(
                             text = cat,
-                            color = if (seleccionada) Color.White else Color(0xFF6B7280),
+                            color = if (seleccionada) Color.White else MaterialTheme.colorScheme.onSurface,
                             fontSize = 13.sp,
                             fontWeight = if (seleccionada) FontWeight.Bold else FontWeight.Normal,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -187,7 +187,7 @@ fun MenuAdminScreen(
                     }
                 },
                 shape = RoundedCornerShape(16.dp),
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             )
         }
     }
@@ -210,8 +210,8 @@ private fun TarjetaProductoAdmin(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, Color(0xFF374151)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -243,7 +243,7 @@ private fun TarjetaProductoAdmin(
                         text = producto.nombre,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
