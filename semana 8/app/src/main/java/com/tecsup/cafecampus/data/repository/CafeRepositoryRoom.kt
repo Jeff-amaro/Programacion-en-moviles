@@ -9,6 +9,8 @@ import com.tecsup.cafecampus.data.local.entity.Producto
 import com.tecsup.cafecampus.data.local.entity.Usuario
 import com.tecsup.cafecampus.data.local.relation.PedidoConDetalle
 import com.tecsup.cafecampus.data.model.PedidosPorHora
+import com.tecsup.cafecampus.data.model.ProductoMasVendido
+import com.tecsup.cafecampus.data.model.TotalPorFormaPago
 import com.tecsup.cafecampus.model.EstadoPedido
 import com.tecsup.cafecampus.model.ItemCarrito
 import kotlinx.coroutines.flow.Flow
@@ -122,5 +124,13 @@ class CafeRepositoryRoom(
 
     override fun observarPedidosPorHora(): Flow<List<PedidosPorHora>> {
         return pedidoDao.observarPedidosPorHora()
+    }
+
+    override fun observarProductoMasVendido(): Flow<ProductoMasVendido?> {
+        return pedidoDao.observarProductoMasVendido()
+    }
+
+    override fun observarTotalPorFormaPago(): Flow<List<TotalPorFormaPago>> {
+        return pedidoDao.observarTotalPorFormaPago()
     }
 }

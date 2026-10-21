@@ -12,9 +12,12 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.cafecampus.data.model.PedidosPorHora
+import com.tecsup.cafecampus.data.model.ProductoMasVendido
+import com.tecsup.cafecampus.data.model.TotalPorFormaPago
 import com.tecsup.cafecampus.viewmodel.PanelAdminViewModel
 
 @Composable
@@ -38,6 +43,8 @@ fun PanelScreen(
     val todosPedidos by panelAdminViewModel.todosLosPedidos.collectAsState()
     val nuevosPreview by panelAdminViewModel.nuevosPedidosPreview.collectAsState()
     val pedidosPorHora by panelAdminViewModel.pedidosPorHora.collectAsState()
+    val productoMasVendido by panelAdminViewModel.productoMasVendido.collectAsState()
+    val totalPorFormaPago by panelAdminViewModel.totalPorFormaPago.collectAsState()
 
     val colorPurpura = Color(0xFF4F46E5)
 
@@ -174,6 +181,132 @@ fun PanelScreen(
                                 fontWeight = FontWeight.Medium,
                                 color = Color.White.copy(alpha = 0.9f)
                             )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Text(
+                    text = "Reporte del día",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = BorderStroke(1.dp, Color(0xFF374151))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = Color(0xFFF59E0B),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "Más vendido",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF9CA3AF)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            val pmv = productoMasVendido
+                            if (pmv != null) {
+                                Text(
+                                    text = pmv.nombre,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "${pmv.cantidadTotal} unidades",
+                                    fontSize = 12.sp,
+                                    color = colorPurpura,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            } else {
+                                Text(
+                                    text = "Sin ventas",
+                                    fontSize = 13.sp,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = BorderStroke(1.dp, Color(0xFF374151))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Payments,
+                                    contentDescription = null,
+                                    tint = Color(0xFF10B981),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "Por forma de pago",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF9CA3AF)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            if (totalPorFormaPago.isEmpty()) {
+                                Text(
+                                    text = "Sin registros",
+                                    fontSize = 13.sp,
+                                    color = Color.Gray
+                                )
+                            } else {
+                                totalPorFormaPago.forEach { itemPago ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = itemPago.formaPago,
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "S/ %.2f".format(itemPago.total),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = colorPurpura
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                }
+                            }
                         }
                     }
                 }

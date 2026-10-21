@@ -8,6 +8,8 @@ import com.tecsup.cafecampus.data.local.entity.DetallePedido
 import com.tecsup.cafecampus.data.local.entity.Pedido
 import com.tecsup.cafecampus.data.local.relation.PedidoConDetalle
 import com.tecsup.cafecampus.data.model.PedidosPorHora
+import com.tecsup.cafecampus.data.model.ProductoMasVendido
+import com.tecsup.cafecampus.data.model.TotalPorFormaPago
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -63,4 +65,23 @@ abstract class PedidoDao {
         ORDER BY hora ASC
     """)
     abstract fun observarPedidosPorHora(): Flow<List<PedidosPorHora>>
+
+    @Query("""
+        SELECT nombreProducto AS nombre, SUM(cantidad) AS cantidadTotal 
+        FROM detalle_pedido 
+        INNER JOIN pedidos ON detalle_pedido.pedidoId = pedidos.id 
+        WHERE pedidos.estado != 'CANCELADO' 
+        GROUP BY nombreProducto 
+        ORDER BY cantidadTotal DESC 
+        LIMIT 1
+    """)
+    abstract fun observarProductoMasVendido(): Flow<ProductoMasVendido?>
+
+    @Query("""
+        SELECT pago AS formaPago, COALESCE(SUM(total), 0.0) AS total 
+        FROM pedidos 
+        WHERE estado != 'CANCELADO' 
+        GROUP BY pago
+    """)
+    abstract fun observarTotalPorFormaPago(): Flow<List<TotalPorFormaPago>>
 }

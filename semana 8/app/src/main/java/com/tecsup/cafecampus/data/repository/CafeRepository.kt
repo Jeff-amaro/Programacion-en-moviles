@@ -4,6 +4,8 @@ import com.tecsup.cafecampus.data.local.entity.Producto
 import com.tecsup.cafecampus.data.local.entity.Usuario
 import com.tecsup.cafecampus.data.local.relation.PedidoConDetalle
 import com.tecsup.cafecampus.data.model.PedidosPorHora
+import com.tecsup.cafecampus.data.model.ProductoMasVendido
+import com.tecsup.cafecampus.data.model.TotalPorFormaPago
 import com.tecsup.cafecampus.model.EstadoPedido
 import com.tecsup.cafecampus.model.ItemCarrito
 import kotlinx.coroutines.flow.Flow
@@ -28,4 +30,6 @@ interface CafeRepository {
     suspend fun eliminarProducto(producto: Producto)
     suspend fun alternarDisponibilidad(producto: Producto)
     fun observarPedidosPorHora(): Flow<List<PedidosPorHora>>
+    fun observarProductoMasVendido(): Flow<ProductoMasVendido?>
+    fun observarTotalPorFormaPago(): Flow<List<TotalPorFormaPago>>
 }
