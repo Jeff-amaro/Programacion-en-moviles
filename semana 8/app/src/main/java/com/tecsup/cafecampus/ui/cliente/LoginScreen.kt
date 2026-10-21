@@ -25,7 +25,8 @@ import com.tecsup.cafecampus.viewmodel.SesionViewModel
 @Composable
 fun LoginScreen(
     viewModel: SesionViewModel,
-    onLoginExitoso: (String) -> Unit
+    onLoginExitoso: (String) -> Unit,
+    onIrARegistro: () -> Unit
 ) {
     var rolSeleccionado by remember { mutableStateOf("CLIENTE") }
     var correo by remember { mutableStateOf("") }
@@ -231,7 +232,7 @@ fun LoginScreen(
                     },
                     fontSize = 13.sp,
                     color = Color(0xFF6B7280),
-                    modifier = Modifier.clickable { }
+                    modifier = Modifier.clickable { onIrARegistro() }
                 )
             }
         } else {

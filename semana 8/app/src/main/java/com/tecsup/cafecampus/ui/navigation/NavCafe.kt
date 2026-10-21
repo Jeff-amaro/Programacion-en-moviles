@@ -27,6 +27,7 @@ import com.tecsup.cafecampus.viewmodel.SesionViewModel
 sealed class Destino(val ruta: String) {
     object Splash : Destino("splash")
     object Login : Destino("login")
+    object Registro : Destino("registro")
     object MenuCliente : Destino("menu_cliente")
     object DetalleProducto : Destino("detalle_producto")
     object ConfirmarPedido : Destino("confirmar_pedido")
@@ -85,6 +86,23 @@ fun NavCafe(
                     navController.navigate(destino) {
                         popUpTo(Destino.Login.ruta) { inclusive = true }
                     }
+                },
+                onIrARegistro = {
+                    navController.navigate(Destino.Registro.ruta)
+                }
+            )
+        }
+
+        composable(Destino.Registro.ruta) {
+            RegistroScreen(
+                viewModel = sesionViewModel,
+                onRegistroExitoso = {
+                    navController.navigate(Destino.Login.ruta) {
+                        popUpTo(Destino.Registro.ruta) { inclusive = true }
+                    }
+                },
+                onVolverALogin = {
+                    navController.popBackStack()
                 }
             )
         }

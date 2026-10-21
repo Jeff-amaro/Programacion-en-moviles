@@ -31,6 +31,14 @@ class CafeRepositoryRoom(
         return usuarioDao.login(correo, clave)
     }
 
+    override suspend fun buscarPorCorreo(correo: String): Usuario? {
+        return usuarioDao.buscarPorCorreo(correo)
+    }
+
+    override suspend fun registrarUsuario(usuario: Usuario): Long {
+        return usuarioDao.insertar(usuario)
+    }
+
     override suspend fun crearPedido(
         clienteId: Int,
         items: List<ItemCarrito>

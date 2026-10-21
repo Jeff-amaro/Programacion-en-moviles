@@ -67,6 +67,37 @@ class SesionViewModel(
         }
     }
 
+    fun registrarEstudiante(
+        nombre: String,
+        correo: String,
+        clave: String,
+        onExito: () -> Unit
+    ) {
+        viewModelScope.launch {
+            if (nombre.isBlank() || correo.isBlank() || clave.isBlank()) {
+                error.value = "Por favor, completa todos los campos"
+                return@launch
+            }
+
+            val existe = repository.buscarPorCorreo(correo.trim())
+            if (existe != null) {
+                error.value = "El correo ya se encuentra registrado"
+                return@launch
+            }
+
+            val nuevoUsuario = Usuario(
+                nombre = nombre.trim(),
+                correo = correo.trim(),
+                clave = clave.trim(),
+                rol = "ESTUDIANTE"
+            )
+
+            repository.registrarUsuario(nuevoUsuario)
+            error.value = null
+            onExito()
+        }
+    }
+
     fun cambiarPerfil(rol: String) {
         viewModelScope.launch {
             preferenciasStore.guardarPerfilActivo(rol)

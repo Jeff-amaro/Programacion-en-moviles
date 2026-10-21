@@ -12,6 +12,8 @@ interface CafeRepository {
     fun observarProductos(): Flow<List<Producto>>
     suspend fun insertarProducto(producto: Producto): Long
     suspend fun login(correo: String, clave: String): Usuario?
+    suspend fun buscarPorCorreo(correo: String): Usuario?
+    suspend fun registrarUsuario(usuario: Usuario): Long
     suspend fun crearPedido(clienteId: Int, items: List<ItemCarrito>): Long
     suspend fun cambiarEstado(id: Int, estado: EstadoPedido): Int
     fun observarPedidosPorCliente(clienteId: Int): Flow<List<PedidoConDetalle>>
