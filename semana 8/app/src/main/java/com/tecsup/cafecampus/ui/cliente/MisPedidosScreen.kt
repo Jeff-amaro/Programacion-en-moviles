@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,11 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.cafecampus.data.local.relation.PedidoConDetalle
+import com.tecsup.cafecampus.viewmodel.MenuViewModel
 import com.tecsup.cafecampus.viewmodel.PedidosClienteViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisPedidosScreen(
+    menuViewModel: MenuViewModel,
     pedidosViewModel: PedidosClienteViewModel,
     onPedidoClick: (Int) -> Unit,
     onIrAMenu: () -> Unit,
@@ -169,7 +172,10 @@ fun MisPedidosScreen(
             } else {
                 LazyColumnPedidos(
                     pedidos = listaMostrar,
+                    pestañaSeleccionada = pestañaSeleccionada,
+                    menuViewModel = menuViewModel,
                     onPedidoClick = onPedidoClick,
+                    onIrAMenu = onIrAMenu,
                     colorTema = colorTema
                 )
             }
@@ -180,7 +186,10 @@ fun MisPedidosScreen(
 @Composable
 private fun LazyColumnPedidos(
     pedidos: List<PedidoConDetalle>,
+    pestañaSeleccionada: Int,
+    menuViewModel: MenuViewModel,
     onPedidoClick: (Int) -> Unit,
+    onIrAMenu: () -> Unit,
     colorTema: Color
 ) {
     LazyColumn(
@@ -257,6 +266,31 @@ private fun LazyColumnPedidos(
                             fontWeight = FontWeight.Bold,
                             color = colorTema
                         )
+                    }
+
+                    if (pestañaSeleccionada == 1) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                menuViewModel.repetirPedido(detalles)
+                                onIrAMenu()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = colorTema)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Repetir pedido",
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Repetir pedido",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }

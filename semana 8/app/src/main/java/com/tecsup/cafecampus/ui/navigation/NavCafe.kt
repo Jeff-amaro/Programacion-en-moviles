@@ -153,6 +153,7 @@ fun NavCafe(
 
         composable(Destino.MisPedidos.ruta) {
             MisPedidosScreen(
+                menuViewModel = menuViewModel,
                 pedidosViewModel = pedidosViewModel,
                 onPedidoClick = { id ->
                     pedidosViewModel.seleccionarPedido(id)

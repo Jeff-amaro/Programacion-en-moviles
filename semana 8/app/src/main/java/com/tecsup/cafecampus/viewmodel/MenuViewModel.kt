@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.tecsup.cafecampus.data.local.entity.Producto
+import com.tecsup.cafecampus.data.local.relation.DetalleConProducto
 import com.tecsup.cafecampus.data.repository.CafeRepository
 import com.tecsup.cafecampus.model.ItemCarrito
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +54,15 @@ class MenuViewModel(
             }
         } else {
             _carrito.value = _carrito.value + ItemCarrito(producto, cantidad)
+        }
+    }
+
+    fun repetirPedido(detalles: List<DetalleConProducto>) {
+        _carrito.value = detalles.map {
+            ItemCarrito(
+                producto = it.producto,
+                cantidad = it.detalle.cantidad
+            )
         }
     }
 
