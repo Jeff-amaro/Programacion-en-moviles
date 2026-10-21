@@ -1,5 +1,9 @@
 package com.tecsup.cafecampus.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -57,7 +61,11 @@ fun NavCafe(
 
     NavHost(
         navController = navController,
-        startDestination = Destino.Splash.ruta
+        startDestination = Destino.Splash.ruta,
+        enterTransition = { slideInHorizontally(initialOffsetX = { 300 }) + fadeIn() },
+        exitTransition = { slideOutHorizontally(targetOffsetX = { -300 }) + fadeOut() },
+        popEnterTransition = { slideInHorizontally(initialOffsetX = { -300 }) + fadeIn() },
+        popExitTransition = { slideOutHorizontally(targetOffsetX = { 300 }) + fadeOut() }
     ) {
         composable(Destino.Splash.ruta) {
             LaunchedEffect(perfilActivo) {
