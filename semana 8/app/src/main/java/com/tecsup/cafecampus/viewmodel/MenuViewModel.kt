@@ -9,44 +9,62 @@ import com.tecsup.cafecampus.model.ItemCarrito
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 class MenuViewModel(
     private val repository: CafeRepository
 ) : ViewModel() {
 
-    val productos: StateFlow<List<Producto>> = repository.observarProductos()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val _categoriaSeleccionada = MutableStateFlow("Todo")
+    val categoriaSeleccionada: StateFlow<String> = _categoriaSeleccionada
+
+    private val _busqueda = MutableStateFlow("")
+    val busqueda: StateFlow<String> = _busqueda
+
+    val productos: StateFlow<List<Producto>> = combine(
+        repository.observarTodosLosProductos(),
+        _categoriaSeleccionada,
+        _busqueda
+    ) { listaProductos, categoria, textoBusqueda ->
+        listaProductos.filter { producto ->
+            val coincideCategoria = if (categoria == "Todo") true else producto.categoria.equals(categoria, ignoreCase = true)
+            val coincideBusqueda = if (textoBusqueda.isBlank()) true else producto.nombre.contains(textoBusqueda, ignoreCase = true)
+            coincideCategoria && coincideBusqueda && producto.disponible
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _carrito = MutableStateFlow<List<ItemCarrito>>(emptyList())
-    val carrito: StateFlow<List<ItemCarrito>> = _carrito.asStateFlow()
+    val carrito: StateFlow<List<ItemCarrito>> = _carrito
 
-    fun agregar(producto: Producto, cantidad: Int, nota: String) {
-        val listaActual = _carrito.value.toMutableList()
-        val index = listaActual.indexOfFirst { it.producto.id == producto.id }
-
-        if (index != -1) {
-            val itemExistente = listaActual[index]
-            listaActual[index] = itemExistente.copy(
-                cantidad = itemExistente.cantidad + cantidad,
-                notas = if (nota.isNotBlank()) nota else itemExistente.notas
-            )
-        } else {
-            listaActual.add(ItemCarrito(producto = producto, cantidad = cantidad, notas = nota))
-        }
-        _carrito.value = listaActual
+    fun seleccionarCategoria(categoria: String) {
+        _categoriaSeleccionada.value = categoria
     }
 
-    fun quitar(productoId: Int) {
-        _carrito.value = _carrito.value.filterNot { it.producto.id == productoId }
+    fun buscarProducto(texto: String) {
+        _busqueda.value = texto
+    }
+
+    fun agregar(producto: Producto, cantidad: Int = 1, nota: String = "") {
+        val itemActual = _carrito.value.find { it.producto.id == producto.id }
+        if (itemActual != null) {
+            _carrito.value = _carrito.value.map {
+                if (it.producto.id == producto.id) it.copy(cantidad = it.cantidad + cantidad) else it
+            }
+        } else {
+            _carrito.value = _carrito.value + ItemCarrito(producto, cantidad)
+        }
+    }
+
+    fun eliminarDelCarrito(item: ItemCarrito) {
+        _carrito.value = _carrito.value.filterNot { it == item }
     }
 
     fun vaciar() {
+        _carrito.value = emptyList()
+    }
+
+    fun vaciarCarrito() {
         _carrito.value = emptyList()
     }
 

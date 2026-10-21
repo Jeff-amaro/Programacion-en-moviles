@@ -119,20 +119,13 @@ fun MenuScreen(
     val productos by menuViewModel.productos.collectAsState()
     val carrito by menuViewModel.carrito.collectAsState()
     val usuarioActual by sesionViewModel.usuarioActual.collectAsState()
-
-    var busqueda by remember { mutableStateOf("") }
-    var categoriaSeleccionada by remember { mutableStateOf("Todo") }
+    val busqueda by menuViewModel.busqueda.collectAsState()
+    val categoriaSeleccionada by menuViewModel.categoriaSeleccionada.collectAsState()
 
     val colorTema = Color(0xFFE65100)
     val totalItemsCarrito = carrito.sumOf { it.cantidad }
 
     val categorias = listOf("Todo", "Desayunos", "Almuerzos", "Bebidas")
-
-    val productosFiltrados = productos.filter { producto ->
-        val coincideBusqueda = producto.nombre.contains(busqueda, ignoreCase = true)
-        val coincideCategoria = if (categoriaSeleccionada == "Todo") true else producto.categoria.equals(categoriaSeleccionada, ignoreCase = true)
-        coincideBusqueda && coincideCategoria
-    }
 
     Scaffold(
         bottomBar = {
@@ -220,7 +213,7 @@ fun MenuScreen(
 
             OutlinedTextField(
                 value = busqueda,
-                onValueChange = { busqueda = it },
+                onValueChange = { menuViewModel.buscarProducto(it) },
                 placeholder = { Text("Buscar en el menú...", color = Color(0xFF9CA3AF), fontSize = 14.sp) },
                 leadingIcon = {
                     Icon(
@@ -254,7 +247,7 @@ fun MenuScreen(
                                 if (seleccionada) colorTema else Color(0xFFF3F4F6),
                                 RoundedCornerShape(20.dp)
                             )
-                            .clickable { categoriaSeleccionada = cat }
+                            .clickable { menuViewModel.seleccionarCategoria(cat) }
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
@@ -283,7 +276,7 @@ fun MenuScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(productosFiltrados) { producto ->
+                items(productos) { producto ->
                     val fondoBox = when {
                         producto.nombre.lowercase().contains("café") -> Color(0xFFEFEBE9)
                         producto.nombre.lowercase().contains("sandwich") -> Color(0xFFFFF8E1)
