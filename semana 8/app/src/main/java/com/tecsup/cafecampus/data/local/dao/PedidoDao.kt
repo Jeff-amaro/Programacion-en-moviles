@@ -7,6 +7,7 @@ import androidx.room.Transaction
 import com.tecsup.cafecampus.data.local.entity.DetallePedido
 import com.tecsup.cafecampus.data.local.entity.Pedido
 import com.tecsup.cafecampus.data.local.relation.PedidoConDetalle
+import com.tecsup.cafecampus.data.model.PedidosPorHora
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -53,4 +54,13 @@ abstract class PedidoDao {
 
     @Query("UPDATE pedidos SET estado = :nuevoEstado WHERE id = :pedidoId")
     abstract suspend fun actualizarEstadoPedido(pedidoId: Int, nuevoEstado: String)
+
+    @Query("""
+        SELECT strftime('%H', datetime(fecha / 1000, 'unixepoch', 'localtime')) AS hora, COUNT(*) AS cantidad 
+        FROM pedidos 
+        WHERE estado != 'CANCELADO'
+        GROUP BY hora 
+        ORDER BY hora ASC
+    """)
+    abstract fun observarPedidosPorHora(): Flow<List<PedidosPorHora>>
 }

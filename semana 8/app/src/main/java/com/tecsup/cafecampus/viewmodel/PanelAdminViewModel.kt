@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.tecsup.cafecampus.data.local.relation.PedidoConDetalle
+import com.tecsup.cafecampus.data.model.PedidosPorHora
 import com.tecsup.cafecampus.data.repository.CafeRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +17,13 @@ class PanelAdminViewModel(
 ) : ViewModel() {
 
     val todosLosPedidos: StateFlow<List<PedidoConDetalle>> = repository.observarTodosLosPedidos()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val pedidosPorHora: StateFlow<List<PedidosPorHora>> = repository.observarPedidosPorHora()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

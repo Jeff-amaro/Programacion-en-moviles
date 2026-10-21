@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tecsup.cafecampus.data.model.PedidosPorHora
 import com.tecsup.cafecampus.viewmodel.PanelAdminViewModel
 
 @Composable
@@ -36,6 +37,7 @@ fun PanelScreen(
     val ventasHoyTotal by panelAdminViewModel.ventasHoy.collectAsState()
     val todosPedidos by panelAdminViewModel.todosLosPedidos.collectAsState()
     val nuevosPreview by panelAdminViewModel.nuevosPedidosPreview.collectAsState()
+    val pedidosPorHora by panelAdminViewModel.pedidosPorHora.collectAsState()
 
     val colorPurpura = Color(0xFF4F46E5)
 
@@ -194,7 +196,10 @@ fun PanelScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        GraficoBarrasHoras(colorPurpura = colorPurpura)
+                        GraficoBarrasHoras(
+                            pedidosPorHora = pedidosPorHora,
+                            colorPurpura = colorPurpura
+                        )
                     }
                 }
             }
@@ -334,51 +339,66 @@ private fun TarjetaContador(
 }
 
 @Composable
-private fun GraficoBarrasHoras(colorPurpura: Color) {
-    val datos = listOf(
-        Triple("8h", 3, 0.35f),
-        Triple("9h", 6, 0.60f),
-        Triple("10h", 9, 0.90f),
-        Triple("11h", 5, 0.50f),
-        Triple("12h", 7, 0.70f)
-    )
+private fun GraficoBarrasHoras(
+    pedidosPorHora: List<PedidosPorHora>,
+    colorPurpura: Color
+) {
+    if (pedidosPorHora.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(130.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Sin pedidos registrados por hora",
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
+        }
+    } else {
+        val maxCantidad = pedidosPorHora.maxOfOrNull { it.cantidad } ?: 1
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(130.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        datos.forEachIndexed { index, (hora, cantidad, fraccion) ->
-            val esMax = index == 2
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom,
-                modifier = Modifier.fillMaxHeight()
-            ) {
-                Text(
-                    text = "$cantidad",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .width(28.dp)
-                        .fillMaxHeight(fraccion)
-                        .background(
-                            if (esMax) colorPurpura else Color(0xFFC7D2FE),
-                            RoundedCornerShape(8.dp)
-                        )
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = hora,
-                    fontSize = 11.sp,
-                    color = Color(0xFF9CA3AF)
-                )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(130.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            pedidosPorHora.forEach { item ->
+                val fraccion = if (maxCantidad > 0) item.cantidad.toFloat() / maxCantidad else 0f
+                val esMax = item.cantidad == maxCantidad && maxCantidad > 0
+                val horaEtiqueta = "${item.hora.toIntOrNull() ?: item.hora}h"
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom,
+                    modifier = Modifier.fillMaxHeight()
+                ) {
+                    Text(
+                        text = "${item.cantidad}",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(28.dp)
+                            .fillMaxHeight(fraccion.coerceIn(0.12f, 1f))
+                            .background(
+                                if (esMax) colorPurpura else Color(0xFFC7D2FE),
+                                RoundedCornerShape(8.dp)
+                            )
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = horaEtiqueta,
+                        fontSize = 11.sp,
+                        color = Color(0xFF9CA3AF)
+                    )
+                }
             }
         }
     }
