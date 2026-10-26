@@ -37,6 +37,7 @@ sealed class Destino(val ruta: String) {
     object ConfirmarPedido : Destino("confirmar_pedido")
     object Seguimiento : Destino("seguimiento")
     object MisPedidos : Destino("mis_pedidos")
+    object PerfilEstudiante : Destino("perfil_estudiante")
     object PanelAdmin : Destino("panel_admin")
     object PedidosAdmin : Destino("pedidos_admin")
     object DetallePedidoAdmin : Destino("detalle_pedido_admin")
@@ -128,6 +129,9 @@ fun NavCafe(
                 },
                 onPedidosClick = {
                     navController.navigate(Destino.MisPedidos.ruta)
+                },
+                onPerfilClick = {
+                    navController.navigate(Destino.PerfilEstudiante.ruta)
                 }
             )
         }
@@ -190,6 +194,26 @@ fun NavCafe(
                     navController.navigate(Destino.MenuCliente.ruta) {
                         popUpTo(Destino.MenuCliente.ruta) { inclusive = true }
                     }
+                },
+                onVolver = { navController.popBackStack() }
+            )
+        }
+
+        composable(Destino.PerfilEstudiante.ruta) {
+            PerfilEstudianteScreen(
+                sesionViewModel = sesionViewModel,
+                onCerrarSesion = {
+                    navController.navigate(Destino.Login.ruta) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onIrAMenu = {
+                    navController.navigate(Destino.MenuCliente.ruta) {
+                        popUpTo(Destino.MenuCliente.ruta) { inclusive = true }
+                    }
+                },
+                onIrAPedidos = {
+                    navController.navigate(Destino.MisPedidos.ruta)
                 },
                 onVolver = { navController.popBackStack() }
             )

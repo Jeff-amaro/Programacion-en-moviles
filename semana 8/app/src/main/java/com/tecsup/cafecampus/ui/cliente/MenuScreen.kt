@@ -115,7 +115,8 @@ fun MenuScreen(
     sesionViewModel: SesionViewModel,
     onProductoClick: (Producto) -> Unit,
     onCarritoClick: () -> Unit,
-    onPedidosClick: () -> Unit
+    onPedidosClick: () -> Unit,
+    onPerfilClick: () -> Unit
 ) {
     val productos by menuViewModel.productos.collectAsState()
     val carrito by menuViewModel.carrito.collectAsState()
@@ -149,7 +150,7 @@ fun MenuScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = onPerfilClick,
                     icon = { Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.Gray) },
                     label = { Text("Perfil", color = Color.Gray) }
                 )
