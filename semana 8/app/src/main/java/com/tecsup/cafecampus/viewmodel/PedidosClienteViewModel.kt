@@ -44,6 +44,12 @@ class PedidosClienteViewModel(
         _pedidoIdSeleccionado.value = id
     }
 
+    fun cancelarPedido(id: Int) {
+        viewModelScope.launch {
+            repository.actualizarEstadoPedido(id, "CANCELADO")
+        }
+    }
+
     fun confirmar(
         items: List<ItemCarrito>,
         horaRecojo: String,

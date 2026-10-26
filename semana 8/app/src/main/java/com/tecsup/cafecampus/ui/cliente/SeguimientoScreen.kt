@@ -39,6 +39,8 @@ fun SeguimientoScreen(
     val pedidoConDetalle by pedidosViewModel.pedidoActual.collectAsState()
     val colorTema = Color(0xFFE65100)
 
+    var mostrarDialogoCancelar by remember { mutableStateOf(false) }
+
     val estadoActual = pedidoConDetalle?.pedido?.estado ?: "PENDIENTE"
     val ordenEstados = listOf(
         "PENDIENTE" to ("Recibido" to "Tu pedido llegó a la cocina"),
@@ -307,39 +309,86 @@ fun SeguimientoScreen(
                     }
                 }
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFAFAFA)),
-                    border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                Column(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFAFAFA)),
+                        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
                     ) {
-                        val detalles = pedidoConDetalle?.detalles.orEmpty()
-                        val resumenItems = if (detalles.isNotEmpty()) {
-                            detalles.joinToString(" · ") {
-                                "${it.detalle.cantidad} x ${it.producto.nombre}"
-                            }
-                        } else "Sin items"
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            val detalles = pedidoConDetalle?.detalles.orEmpty()
+                            val resumenItems = if (detalles.isNotEmpty()) {
+                                detalles.joinToString(" · ") {
+                                    "${it.detalle.cantidad} x ${it.producto.nombre}"
+                                }
+                            } else "Sin items"
 
-                        Text(
-                            text = resumenItems,
-                            fontSize = 12.sp,
-                            color = Color(0xFF6B7280)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "Total S/ %.2f".format(pedidoConDetalle?.pedido?.total ?: 0.00),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colorTema
-                        )
+                            Text(
+                                text = resumenItems,
+                                fontSize = 12.sp,
+                                color = Color(0xFF6B7280)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Total S/ %.2f".format(pedidoConDetalle?.pedido?.total ?: 0.00),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colorTema
+                            )
+                        }
+                    }
+
+                    if (estadoActual == "PENDIENTE") {
+                        OutlinedButton(
+                            onClick = { mostrarDialogoCancelar = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            border = BorderStroke(1.dp, Color(0xFFDC2626)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "Cancelar pedido",
+                                color = Color(0xFFDC2626),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
+        }
+
+        if (mostrarDialogoCancelar) {
+            AlertDialog(
+                onDismissRequest = { mostrarDialogoCancelar = false },
+                title = { Text("¿Cancelar pedido?", fontWeight = FontWeight.Bold) },
+                text = { Text("Esta acción no se puede deshacer. ¿Deseas cancelar tu orden pendiente?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            pedidoConDetalle?.pedido?.id?.let { id ->
+                                pedidosViewModel.cancelarPedido(id)
+                            }
+                            mostrarDialogoCancelar = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
+                    ) {
+                        Text("Sí, cancelar", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { mostrarDialogoCancelar = false }) {
+                        Text("Volver")
+                    }
+                }
+            )
         }
     }
 }
