@@ -1,7 +1,7 @@
 package com.tecsup.cafecampus.ui.admin
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
@@ -22,10 +21,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tecsup.cafecampus.R
 import com.tecsup.cafecampus.viewmodel.SesionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +45,12 @@ fun AjustesScreen(
     val modoOscuro by sesionViewModel.modoOscuro.collectAsState()
     val notificaciones by sesionViewModel.notificaciones.collectAsState()
     val recibirPedidos by sesionViewModel.recibirPedidos.collectAsState()
+    val perfilActivo by sesionViewModel.perfilActivo.collectAsState()
+
+    val esAdmin = perfilActivo == "ADMIN"
+    val nombreUsuario = if (esAdmin) "Administrador" else "Juan Pérez"
+    val correoUsuario = if (esAdmin) "admin@cafe.test" else "juan.perez@tecsup.edu.pe"
+    val avatarRes = if (esAdmin) R.drawable.imagen_perfil_admin else R.drawable.imagen_perfil_estudiante
 
     val colorPurpura = Color(0xFF4F46E5)
 
@@ -125,39 +134,34 @@ fun AjustesScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            Box(
+                            Image(
+                                painter = painterResource(id = avatarRes),
+                                contentDescription = "Foto de perfil",
                                 modifier = Modifier
-                                    .size(48.dp)
-                                    .background(Color(0xFFEEF2FF), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = colorPurpura,
-                                    modifier = Modifier.size(26.dp)
-                                )
-                            }
+                                    .size(52.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
                             Column {
                                 Text(
-                                    text = "Administrador",
+                                    text = nombreUsuario,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "admin@cafe.test",
+                                    text = correoUsuario,
                                     fontSize = 13.sp,
                                     color = Color(0xFF9CA3AF)
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Surface(
-                                    color = Color(0xFFE0E7FF),
+                                    color = if (esAdmin) Color(0xFFE0E7FF) else Color(0xFFDCFCE7),
                                     shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Text(
-                                        text = "Perfil activo",
-                                        color = Color(0xFF2563EB),
+                                        text = if (esAdmin) "Perfil Administrador" else "Perfil Estudiante",
+                                        color = if (esAdmin) Color(0xFF2563EB) else Color(0xFF16A34A),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -173,7 +177,8 @@ fun AjustesScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                sesionViewModel.cambiarPerfil("CLIENTE")
+                                val nuevoPerfil = if (esAdmin) "CLIENTE" else "ADMIN"
+                                sesionViewModel.cambiarPerfil(nuevoPerfil)
                                 onCambiarPerfil()
                             },
                         shape = RoundedCornerShape(16.dp),
@@ -198,7 +203,7 @@ fun AjustesScreen(
                                     color = Color.White
                                 )
                                 Text(
-                                    text = "Modo práctica: ir a vista Estudiante",
+                                    text = if (esAdmin) "Modo práctica: ir a vista Estudiante" else "Modo práctica: ir a vista Administrador",
                                     fontSize = 12.sp,
                                     color = Color.White.copy(alpha = 0.8f)
                                 )
