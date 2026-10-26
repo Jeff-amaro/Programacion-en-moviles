@@ -1,5 +1,6 @@
 package com.tecsup.cafecampus.ui.cliente
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -121,6 +122,7 @@ fun MenuScreen(
     val usuarioActual by sesionViewModel.usuarioActual.collectAsState()
     val busqueda by menuViewModel.busqueda.collectAsState()
     val categoriaSeleccionada by menuViewModel.categoriaSeleccionada.collectAsState()
+    val recibirPedidos by sesionViewModel.recibirPedidos.collectAsState()
 
     val colorTema = Color(0xFFE65100)
     val totalItemsCarrito = carrito.sumOf { it.cantidad }
@@ -204,6 +206,34 @@ fun MenuScreen(
                             imageVector = Icons.Outlined.ShoppingBag,
                             contentDescription = "Carrito",
                             tint = Color(0xFF1F2937)
+                        )
+                    }
+                }
+            }
+
+            if (!recibirPedidos) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFFFEE2E2),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFEF4444))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "☕ Cafetería Cerrada",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF991B1B),
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = "— No se están recibiendo nuevos pedidos.",
+                            color = Color(0xFF991B1B),
+                            fontSize = 12.sp
                         )
                     }
                 }
@@ -334,7 +364,7 @@ fun MenuScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(colorTema, RoundedCornerShape(8.dp))
+                                        .background(if (recibirPedidos) colorTema else Color(0xFF9CA3AF), RoundedCornerShape(8.dp))
                                         .clickable { onProductoClick(producto) },
                                     contentAlignment = Alignment.Center
                                 ) {

@@ -18,16 +18,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.cafecampus.viewmodel.MenuViewModel
 import com.tecsup.cafecampus.viewmodel.PedidosClienteViewModel
+import com.tecsup.cafecampus.viewmodel.SesionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmarPedidoScreen(
     menuViewModel: MenuViewModel,
     pedidosViewModel: PedidosClienteViewModel,
+    sesionViewModel: SesionViewModel,
     onPedidoConfirmado: (Int) -> Unit,
     onVolver: () -> Unit
 ) {
     val carrito by menuViewModel.carrito.collectAsState()
+    val recibirPedidos by sesionViewModel.recibirPedidos.collectAsState()
     var horaSeleccionada by remember { mutableStateOf("10:30") }
     var formaPagoSeleccionada by remember { mutableStateOf("Pagar en caja") }
 
@@ -76,6 +79,25 @@ fun ConfirmarPedidoScreen(
             ) {
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
+
+                    if (!recibirPedidos) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color(0xFFFEE2E2),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, Color(0xFFEF4444))
+                        ) {
+                            Text(
+                                text = "☕ La cafetería está cerrada en este momento. No es posible enviar nuevos pedidos.",
+                                color = Color(0xFF991B1B),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -279,14 +301,18 @@ fun ConfirmarPedidoScreen(
                             onPedidoConfirmado(idNuevo)
                         }
                     },
+                    enabled = recibirPedidos,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colorTema),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorTema,
+                        disabledContainerColor = Color(0xFFD1D5DB)
+                    ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
-                        text = "Confirmar pedido",
+                        text = if (recibirPedidos) "Confirmar pedido" else "Cafetería Cerrada",
                         color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold

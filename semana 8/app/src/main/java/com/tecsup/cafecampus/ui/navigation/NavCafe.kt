@@ -150,6 +150,7 @@ fun NavCafe(
             ConfirmarPedidoScreen(
                 menuViewModel = menuViewModel,
                 pedidosViewModel = pedidosViewModel,
+                sesionViewModel = sesionViewModel,
                 onPedidoConfirmado = { id ->
                     pedidosViewModel.seleccionarPedido(id)
                     navController.navigate(Destino.Seguimiento.ruta) {
