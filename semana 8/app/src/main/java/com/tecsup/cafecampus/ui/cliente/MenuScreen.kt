@@ -1,6 +1,7 @@
 package com.tecsup.cafecampus.ui.cliente
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,20 +14,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocalCafe
-import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tecsup.cafecampus.R
 import com.tecsup.cafecampus.data.local.entity.Producto
 import com.tecsup.cafecampus.viewmodel.MenuViewModel
 import com.tecsup.cafecampus.viewmodel.SesionViewModel
@@ -34,78 +36,23 @@ import com.tecsup.cafecampus.viewmodel.SesionViewModel
 @Composable
 fun ProductoGrafico(nombre: String, modifier: Modifier = Modifier) {
     val lower = nombre.lowercase()
-    when {
-        lower.contains("menú") || lower.contains("menu") -> {
-            Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                Surface(
-                    modifier = Modifier.size(54.dp),
-                    shape = CircleShape,
-                    color = Color.White,
-                    shadowElevation = 1.dp
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Surface(
-                            modifier = Modifier.size(40.dp),
-                            shape = CircleShape,
-                            color = Color(0xFFFAF0E6)
-                        ) {}
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(3.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(modifier = Modifier.size(10.dp).background(Color(0xFFFFA000), CircleShape))
-                            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Box(modifier = Modifier.size(8.dp).background(Color(0xFFE53935), CircleShape))
-                                Box(modifier = Modifier.size(8.dp).background(Color(0xFF43A047), CircleShape))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        lower.contains("sandwich") || lower.contains("sándwich") || lower.contains("empanada") -> {
-            Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    Surface(modifier = Modifier.width(42.dp).height(7.dp), shape = RoundedCornerShape(3.dp), color = Color(0xFFF57C00)) {}
-                    Surface(modifier = Modifier.width(46.dp).height(5.dp), shape = RoundedCornerShape(2.dp), color = Color(0xFF43A047)) {}
-                    Surface(modifier = Modifier.width(42.dp).height(7.dp), shape = RoundedCornerShape(3.dp), color = Color(0xFFF57C00)) {}
-                }
-            }
-        }
-        lower.contains("café") || lower.contains("cappuccino") || lower.contains("latte") -> {
-            Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.LocalCafe,
-                    contentDescription = null,
-                    tint = Color(0xFF6D4C41),
-                    modifier = Modifier.size(42.dp)
-                )
-            }
-        }
-        lower.contains("jugo") || lower.contains("bebida") -> {
-            Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.LocalDrink,
-                    contentDescription = null,
-                    tint = Color(0xFFFB8C00),
-                    modifier = Modifier.size(42.dp)
-                )
-            }
-        }
-        else -> {
-            Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.Restaurant,
-                    contentDescription = null,
-                    tint = Color(0xFFE65100),
-                    modifier = Modifier.size(38.dp)
-                )
-            }
-        }
+
+    val imagenRes = when {
+        lower.contains("americano") -> R.drawable.cafe_americano
+        lower.contains("cappuccino") -> R.drawable.cappuccino
+        lower.contains("empanada") -> R.drawable.empanada_de_carne
+        lower.contains("latte") -> R.drawable.latte
+        lower.contains("sandwich") || lower.contains("sándwich") || lower.contains("pollo") -> R.drawable.sandwich_de_pollo
+        lower.contains("torta") || lower.contains("chocolate") -> R.drawable.torta_de_chocolate
+        else -> R.drawable.ic_launcher_foreground
     }
+
+    Image(
+        painter = painterResource(id = imagenRes),
+        contentDescription = nombre,
+        modifier = modifier,
+        contentScale = ContentScale.Crop
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -308,12 +255,6 @@ fun MenuScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(productos) { producto ->
-                    val fondoBox = when {
-                        producto.nombre.lowercase().contains("café") -> Color(0xFFEFEBE9)
-                        producto.nombre.lowercase().contains("sandwich") -> Color(0xFFFFF8E1)
-                        else -> Color(0xFFFFF3E0)
-                    }
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -329,7 +270,7 @@ fun MenuScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(100.dp)
-                                    .background(fondoBox, RoundedCornerShape(12.dp)),
+                                    .clip(RoundedCornerShape(12.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 ProductoGrafico(

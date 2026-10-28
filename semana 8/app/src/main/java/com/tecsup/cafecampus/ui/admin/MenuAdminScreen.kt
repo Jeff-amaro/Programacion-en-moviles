@@ -21,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -201,12 +202,6 @@ private fun TarjetaProductoAdmin(
     onEliminar: () -> Unit,
     onToggleDisponible: () -> Unit
 ) {
-    val fondoBox = when {
-        producto.nombre.lowercase().contains("café") -> Color(0xFFEFEBE9)
-        producto.nombre.lowercase().contains("sandwich") || producto.nombre.lowercase().contains("sándwich") -> Color(0xFFFFF8E1)
-        else -> Color(0xFFFFF3E0)
-    }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -229,12 +224,12 @@ private fun TarjetaProductoAdmin(
                 Box(
                     modifier = Modifier
                         .size(52.dp)
-                        .background(fondoBox, RoundedCornerShape(12.dp)),
+                        .clip(RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     ProductoGrafico(
                         nombre = producto.nombre,
-                        modifier = Modifier.size(38.dp)
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 
