@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,21 +22,40 @@ fun ListaScreen(
     onProductoClick: (Int) -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val aviso by viewModel.aviso.collectAsState()
 
-    when (val actual = estado) {
-        is UiState.Cargando -> Cargando()
-        is UiState.Error -> ErrorView(
-            mensaje = actual.mensaje,
-            onReintentar = { viewModel.refrescar() }
-        )
-        is UiState.Exito -> {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+    Column(modifier = Modifier.fillMaxSize()) {
+        aviso?.let { mensaje ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.errorContainer
             ) {
-                items(actual.datos) { producto ->
-                    ProductoCard(producto = producto, onClick = { onProductoClick(producto.id) })
+                Text(
+                    text = mensaje,
+                    modifier = Modifier.padding(12.dp),
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        Box(modifier = Modifier.weight(1f)) {
+            when (val actual = estado) {
+                is UiState.Cargando -> Cargando()
+                is UiState.Error -> ErrorView(
+                    mensaje = actual.mensaje,
+                    onReintentar = { viewModel.refrescar() }
+                )
+                is UiState.Exito -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(actual.datos) { producto ->
+                            ProductoCard(producto = producto, onClick = { onProductoClick(producto.id) })
+                        }
+                    }
                 }
             }
         }
