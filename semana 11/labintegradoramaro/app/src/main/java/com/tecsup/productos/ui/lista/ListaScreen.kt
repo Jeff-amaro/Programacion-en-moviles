@@ -17,14 +17,17 @@ import com.tecsup.productos.ui.components.ErrorView
 
 @Composable
 fun ListaScreen(
-    viewModel: ListaViewModel = viewModel(),
+    viewModel: ListaViewModel = viewModel(factory = ListaViewModel.Factory),
     onProductoClick: (Int) -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
 
     when (val actual = estado) {
         is UiState.Cargando -> Cargando()
-        is UiState.Error -> ErrorView(mensaje = actual.mensaje, onReintentar = { })
+        is UiState.Error -> ErrorView(
+            mensaje = actual.mensaje,
+            onReintentar = { viewModel.refrescar() }
+        )
         is UiState.Exito -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
