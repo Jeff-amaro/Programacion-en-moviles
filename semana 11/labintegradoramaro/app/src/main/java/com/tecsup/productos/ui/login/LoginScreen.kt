@@ -12,7 +12,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
-    onLoginExito: () -> Unit
+    onLoginExito: (com.tecsup.productos.domain.model.Rol) -> Unit
 ) {
     val estado by viewModel.estado.collectAsState()
     var correo by remember { mutableStateOf("") }
@@ -20,7 +20,7 @@ fun LoginScreen(
 
     LaunchedEffect(estado) {
         if (estado is LoginEstado.Exito) {
-            onLoginExito()
+            onLoginExito((estado as LoginEstado.Exito).sesion.rol) // <- AQUÍ
         }
     }
 
