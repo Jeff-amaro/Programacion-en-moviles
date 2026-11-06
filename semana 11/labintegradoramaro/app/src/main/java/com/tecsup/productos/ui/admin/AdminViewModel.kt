@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.tecsup.productos.data.auth.AuthRepository
 import com.tecsup.productos.data.auth.FirebaseAuthRepository
 import com.tecsup.productos.data.repository.ProductoRepository
+import com.tecsup.productos.notification.Notificador
+import com.tecsup.productos.notification.NotificadorAndroid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +14,8 @@ import kotlinx.coroutines.launch
 
 class AdminViewModel(
     private val repository: ProductoRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val notificador: Notificador
 ) : ViewModel() {
 
     private val _totalGuardados = MutableStateFlow(0)
@@ -34,8 +37,14 @@ class AdminViewModel(
 
     fun sincronizar() {
         viewModelScope.launch {
-            repository.refrescar()
+            val resultado = repository.refrescar()
             actualizarTotales()
+
+            resultado.onSuccess { n ->
+                notificador.mostrar("Sincronización", "Se actualizaron $n productos desde la red")
+            }.onFailure {
+                notificador.mostrar("Error", "No se pudo sincronizar el catálogo")
+            }
         }
     }
 
@@ -43,6 +52,7 @@ class AdminViewModel(
         viewModelScope.launch {
             repository.limpiarCache()
             actualizarTotales()
+            notificador.mostrar("Caché Limpia", "Se eliminaron los datos locales no favoritos")
         }
     }
 
@@ -62,7 +72,9 @@ class AdminViewModel(
                 val db = com.tecsup.productos.data.local.AppDatabase.obtenerInstancia(application)
                 val repo = com.tecsup.productos.data.repository.ProductoRepositoryImpl(api, db.productoDao())
                 val authRepo = FirebaseAuthRepository()
-                return AdminViewModel(repo, authRepo) as T
+                val notificador = NotificadorAndroid(application)
+
+                return AdminViewModel(repo, authRepo, notificador) as T
             }
         }
     }

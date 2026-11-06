@@ -1,5 +1,9 @@
 package com.tecsup.productos.ui.admin
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,8 +22,16 @@ fun AdminScreen(
     val totalGuardados by viewModel.totalGuardados.collectAsState()
     val totalFavoritos by viewModel.totalFavoritos.collectAsState()
 
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {  }
+
     LaunchedEffect(Unit) {
         viewModel.actualizarTotales()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     Scaffold(
