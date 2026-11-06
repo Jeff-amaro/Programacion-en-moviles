@@ -33,12 +33,19 @@ class DetalleViewModel(
     }
 
     companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        val Factory: androidx.lifecycle.ViewModelProvider.Factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val api = RetrofitClient.api
-                val repo = ProductoRepositoryImpl(api)
-                return DetalleViewModel(repo) as T
+            override fun <T : androidx.lifecycle.ViewModel> create(
+                modelClass: Class<T>,
+                extras: androidx.lifecycle.viewmodel.CreationExtras
+            ): T {
+                val application = checkNotNull(extras[androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+
+                val api = com.tecsup.productos.data.remote.RetrofitClient.api
+                val db = com.tecsup.productos.data.local.AppDatabase.obtenerInstancia(application)
+
+                val repo = com.tecsup.productos.data.repository.ProductoRepositoryImpl(api, db.productoDao())
+                return modelClass.getConstructor(com.tecsup.productos.data.repository.ProductoRepository::class.java).newInstance(repo)
             }
         }
     }
