@@ -12,6 +12,8 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.*
@@ -42,6 +44,8 @@ fun ListaScreen(
     onProductoClick: (Int) -> Unit = {},
     onVerFavoritos: () -> Unit = {},
     onVerCarrito: () -> Unit = {},
+    onVerHistorial: () -> Unit = {},
+    onVerPerfil: () -> Unit = {},
     onCerrarSesion: () -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -103,11 +107,25 @@ fun ListaScreen(
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
+                    IconButton(onClick = onVerHistorial) {
+                        Icon(
+                            imageVector = Icons.Rounded.History,
+                            contentDescription = "Ver Historial",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                     IconButton(onClick = onVerCarrito) {
                         Icon(
                             imageVector = Icons.Rounded.ShoppingCart,
                             contentDescription = "Ver Carrito",
                             tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = onVerPerfil) {
+                        Icon(
+                            imageVector = Icons.Rounded.Person,
+                            contentDescription = "Ver Perfil",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(onClick = {

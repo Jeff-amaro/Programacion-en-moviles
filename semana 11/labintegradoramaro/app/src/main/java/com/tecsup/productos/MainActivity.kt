@@ -7,6 +7,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.tecsup.productos.ui.navigation.AppNavigation
 import com.tecsup.productos.ui.theme.LabintegradoramaroTheme
@@ -16,12 +20,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LabintegradoramaroTheme {
+            var modoOscuro by remember { mutableStateOf(false) }
+
+            LabintegradoramaroTheme(darkTheme = modoOscuro) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    AppNavigation(
+                        modoOscuro = modoOscuro,
+                        onCambiarTema = { nuevoEstado -> modoOscuro = nuevoEstado }
+                    )
                 }
             }
         }

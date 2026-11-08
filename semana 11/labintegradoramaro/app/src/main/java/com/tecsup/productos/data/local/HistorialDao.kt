@@ -13,4 +13,10 @@ interface HistorialDao {
 
     @Query("SELECT * FROM historial ORDER BY timestamp DESC LIMIT 5")
     fun obtenerHistorialReciente(): Flow<List<HistorialEntity>>
+
+    @Query("SELECT * FROM historial")
+    fun obtenerHistorial(): Flow<List<HistorialEntity>>
+
+    @Query("DELETE FROM historial")
+    suspend fun limpiarHistorial()
 }

@@ -38,6 +38,8 @@ class ProductoRepositoryImpl(
         }
     }
 
+    override val historial: Flow<List<HistorialEntity>> = historialDao.obtenerHistorial()
+
     override suspend fun refrescar(): Result<Int> = try {
         val respuesta = api.listar("smartphones")
         val entidades = respuesta.products.map { it.aModelo().aEntity() }
@@ -108,5 +110,9 @@ class ProductoRepositoryImpl(
 
     override suspend fun registrarVista(idProducto: Int) {
         historialDao.insertar(HistorialEntity(idProducto, System.currentTimeMillis()))
+    }
+
+    override suspend fun limpiarHistorial() {
+        historialDao.limpiarHistorial()
     }
 }

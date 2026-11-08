@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.ExitToApp
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Storefront
 import androidx.compose.material3.*
@@ -37,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun AdminScreen(
     viewModel: AdminViewModel = viewModel(factory = AdminViewModel.Factory),
     onVerCatalogo: () -> Unit,
+    onVerPerfil: () -> Unit = {},
     onCerrarSesion: () -> Unit
 ) {
     val totalGuardados by viewModel.totalGuardados.collectAsState()
@@ -60,6 +62,13 @@ fun AdminScreen(
             TopAppBar(
                 title = { Text("Panel de Administrador", fontWeight = FontWeight.SemiBold) },
                 actions = {
+                    IconButton(onClick = onVerPerfil) {
+                        Icon(
+                            imageVector = Icons.Rounded.Person,
+                            contentDescription = "Ver Perfil",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     IconButton(onClick = {
                         viewModel.cerrarSesion()
                         onCerrarSesion()
