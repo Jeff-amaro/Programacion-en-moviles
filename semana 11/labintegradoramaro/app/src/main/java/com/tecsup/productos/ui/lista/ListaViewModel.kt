@@ -2,6 +2,7 @@ package com.tecsup.productos.ui.lista
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.tecsup.productos.data.repository.ProductoRepository
 import com.tecsup.productos.domain.model.Producto
 import com.tecsup.productos.ui.UiState
@@ -124,6 +125,10 @@ class ListaViewModel(
         }
     }
 
+    fun cerrarSesion() {
+        FirebaseAuth.getInstance().signOut()
+    }
+
     private fun mensajeDe(e: Throwable): String = when (e) {
         is IOException -> "No hay conexión a internet"
         is HttpException -> "El servidor respondió con error ${e.code()}"
@@ -140,7 +145,12 @@ class ListaViewModel(
                 val application = checkNotNull(extras[androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 val api = com.tecsup.productos.data.remote.RetrofitClient.api
                 val db = com.tecsup.productos.data.local.AppDatabase.obtenerInstancia(application)
-                val repo = com.tecsup.productos.data.repository.ProductoRepositoryImpl(api, db.productoDao())
+                val repo = com.tecsup.productos.data.repository.ProductoRepositoryImpl(
+                    api = api,
+                    dao = db.productoDao(),
+                    carritoDao = db.carritoDao(),
+                    historialDao = db.historialDao()
+                )
                 val notificador = com.tecsup.productos.notification.NotificadorAndroid(application)
 
                 return ListaViewModel(repo, notificador) as T

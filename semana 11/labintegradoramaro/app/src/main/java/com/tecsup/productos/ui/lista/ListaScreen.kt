@@ -13,6 +13,7 @@ import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,6 +41,7 @@ fun ListaScreen(
     viewModel: ListaViewModel = viewModel(factory = ListaViewModel.Factory),
     onProductoClick: (Int) -> Unit = {},
     onVerFavoritos: () -> Unit = {},
+    onVerCarrito: () -> Unit = {},
     onCerrarSesion: () -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -101,7 +103,17 @@ fun ListaScreen(
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
-                    IconButton(onClick = onCerrarSesion) {
+                    IconButton(onClick = onVerCarrito) {
+                        Icon(
+                            imageVector = Icons.Rounded.ShoppingCart,
+                            contentDescription = "Ver Carrito",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = {
+                        viewModel.cerrarSesion()
+                        onCerrarSesion()
+                    }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
                             contentDescription = "Cerrar Sesión",

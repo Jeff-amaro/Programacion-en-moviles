@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tecsup.productos.domain.model.Rol
 import com.tecsup.productos.ui.admin.AdminScreen
+import com.tecsup.productos.ui.carrito.CarritoScreen
 import com.tecsup.productos.ui.detalle.DetalleScreen
 import com.tecsup.productos.ui.favoritos.FavoritosScreen
 import com.tecsup.productos.ui.lista.ListaScreen
@@ -54,6 +55,9 @@ fun AppNavigation() {
                 onVerFavoritos = {
                     navController.navigate("favoritos")
                 },
+                onVerCarrito = {
+                    navController.navigate(Rutas.Carrito.ruta)
+                },
                 onCerrarSesion = {
                     navController.navigate(Rutas.Login.ruta) {
                         popUpTo(0)
@@ -67,6 +71,17 @@ fun AppNavigation() {
                 onVolver = { navController.popBackStack() },
                 onProductoClick = { id ->
                     navController.navigate(Rutas.Detalle.crearRuta(id))
+                }
+            )
+        }
+
+        composable(Rutas.Carrito.ruta) {
+            CarritoScreen(
+                onVolver = { navController.popBackStack() },
+                onCompraExitosa = {
+                    navController.navigate(Rutas.Lista.ruta) {
+                        popUpTo(Rutas.Lista.ruta) { inclusive = true }
+                    }
                 }
             )
         }

@@ -9,13 +9,16 @@ import com.tecsup.productos.data.repository.ProductoRepository
 import com.tecsup.productos.data.repository.ProductoRepositoryImpl
 import com.tecsup.productos.domain.model.Producto
 import com.tecsup.productos.ui.UiState
+import com.tecsup.productos.notification.Notificador
+import com.tecsup.productos.notification.NotificadorAndroid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class DetalleViewModel(
-    private val repo: ProductoRepository
+    private val repo: ProductoRepository,
+    private val notificador: Notificador
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow<UiState<Producto>>(UiState.Cargando)
@@ -27,6 +30,8 @@ class DetalleViewModel(
             val resultado = repo.obtenerDetalle(id)
             resultado.onSuccess { producto ->
                 _estado.value = UiState.Exito(producto)
+                // Registramos la vista en el historial automáticamente
+                repo.registrarVista(id)
             }.onFailure { e ->
                 _estado.value = UiState.Error(e.message ?: "Error al cargar detalle")
             }
@@ -46,6 +51,13 @@ class DetalleViewModel(
         }
     }
 
+    fun agregarAlCarrito(producto: Producto) {
+        viewModelScope.launch {
+            repo.agregarAlCarrito(producto)
+            notificador.mostrar("Carrito", "${producto.titulo} añadido al carrito")
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -56,8 +68,15 @@ class DetalleViewModel(
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 val api = RetrofitClient.api
                 val db = AppDatabase.obtenerInstancia(application)
-                val repo = ProductoRepositoryImpl(api, db.productoDao())
-                return modelClass.getConstructor(ProductoRepository::class.java).newInstance(repo)
+                val repo = ProductoRepositoryImpl(
+                    api = api,
+                    dao = db.productoDao(),
+                    carritoDao = db.carritoDao(),
+                    historialDao = db.historialDao()
+                )
+                val notificador = NotificadorAndroid(application)
+
+                return DetalleViewModel(repo, notificador) as T
             }
         }
     }

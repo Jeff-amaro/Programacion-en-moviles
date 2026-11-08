@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -146,13 +147,18 @@ fun DetalleScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Button(
-                        onClick = onVolver,
+                        onClick = { viewModel.agregarAlCarrito(producto) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Volver al Catálogo", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = Icons.Rounded.ShoppingCart,
+                            contentDescription = "Carrito",
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text("Añadir al Carrito", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
