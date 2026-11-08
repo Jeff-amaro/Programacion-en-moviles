@@ -149,7 +149,8 @@ class ListaViewModel(
                     api = api,
                     dao = db.productoDao(),
                     carritoDao = db.carritoDao(),
-                    historialDao = db.historialDao()
+                    historialDao = db.historialDao(),
+                    favoritoDao = db.favoritoDao(),
                 )
                 val notificador = com.tecsup.productos.notification.NotificadorAndroid(application)
 

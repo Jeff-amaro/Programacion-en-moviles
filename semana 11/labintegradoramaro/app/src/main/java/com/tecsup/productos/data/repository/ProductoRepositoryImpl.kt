@@ -2,6 +2,8 @@ package com.tecsup.productos.data.repository
 
 import com.tecsup.productos.data.local.CarritoDao
 import com.tecsup.productos.data.local.CarritoEntity
+import com.tecsup.productos.data.local.FavoritoDao
+import com.tecsup.productos.data.local.FavoritoEntity
 import com.tecsup.productos.data.local.HistorialDao
 import com.tecsup.productos.data.local.HistorialEntity
 import com.tecsup.productos.data.local.ProductoDao
@@ -9,7 +11,9 @@ import com.tecsup.productos.data.remote.ApiService
 import com.tecsup.productos.domain.model.Producto
 import com.tecsup.productos.mapper.aEntity
 import com.tecsup.productos.mapper.aModelo
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import retrofit2.HttpException
 import java.io.IOException
@@ -18,16 +22,23 @@ class ProductoRepositoryImpl(
     private val api: ApiService,
     private val dao: ProductoDao,
     private val carritoDao: CarritoDao,
-    private val historialDao: HistorialDao
+    private val historialDao: HistorialDao,
+    private val favoritoDao: FavoritoDao
 ) : ProductoRepository {
+
+    private val auth = FirebaseAuth.getInstance()
 
     override val items: Flow<List<Producto>> = dao.obtenerTodos().map { lista ->
         lista.map { it.aModelo() }
     }
 
-    override val favoritos: Flow<List<Producto>> = dao.obtenerFavoritos().map { lista ->
-        lista.map { it.aModelo() }
-    }
+    override val favoritos: Flow<List<Producto>> = auth.currentUser?.uid?.let { userId ->
+        favoritoDao.obtenerFavoritosPorUsuario(userId).map { favEntities ->
+            favEntities.mapNotNull { fav ->
+                dao.obtenerPorId(fav.productoId)?.aModelo()
+            }
+        }
+    } ?: flowOf(emptyList())
 
     override val carrito: Flow<List<CarritoEntity>> = carritoDao.obtenerCarrito()
     override val totalCarrito: Flow<Double?> = carritoDao.obtenerTotal()
@@ -66,15 +77,24 @@ class ProductoRepositoryImpl(
     }
 
     override suspend fun alternarFavorito(id: Int) {
-        val local = dao.obtenerPorId(id)
-        if (local != null) {
-            val actualizado = local.copy(esFavorito = !local.esFavorito)
-            dao.actualizar(actualizado)
+        val userId = auth.currentUser?.uid ?: return
+        val existe = favoritoDao.existeFavorito(id, userId) > 0
+        if (existe) {
+            favoritoDao.eliminarFavorito(id, userId)
+        } else {
+            favoritoDao.insertarFavorito(
+                FavoritoEntity(productoId = id, userId = userId)
+            )
         }
     }
 
     override suspend fun cantidadGuardada(): Int = dao.contarProductos()
-    override suspend fun cantidadFavoritos(): Int = dao.contarFavoritos()
+
+    override suspend fun cantidadFavoritos(): Int {
+        val userId = auth.currentUser?.uid ?: return 0
+        return 0
+    }
+
     override suspend fun limpiarCache() {
         dao.limpiarNoFavoritos()
     }

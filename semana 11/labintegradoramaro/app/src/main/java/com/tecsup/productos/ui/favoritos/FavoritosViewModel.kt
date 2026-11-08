@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.tecsup.productos.data.remote.RetrofitClient
+import com.tecsup.productos.data.repository.ProductoRepositoryImpl
 
 class FavoritosViewModel(
     private val repository: ProductoRepository
@@ -35,14 +37,15 @@ class FavoritosViewModel(
             ): T {
                 val application = checkNotNull(extras[androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 val api = com.tecsup.productos.data.remote.RetrofitClient.api
-                val db = com.tecsup.productos.data.local.AppDatabase.obtenerInstancia(application)
-                val repo = com.tecsup.productos.data.repository.ProductoRepositoryImpl(
+                val db = com.tecsup.productos.data.local.AppDatabase.obtenerInstancia(context = application)
+                val repo = ProductoRepositoryImpl(
                     api = api,
                     dao = db.productoDao(),
                     carritoDao = db.carritoDao(),
-                    historialDao = db.historialDao()
+                    historialDao = db.historialDao(),
+                    favoritoDao = db.favoritoDao(),
                 )
-                return FavoritosViewModel(repo) as T
+                return FavoritosViewModel(repository = repo) as T
             }
         }
     }

@@ -67,12 +67,13 @@ class DetalleViewModel(
             ): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 val api = RetrofitClient.api
-                val db = AppDatabase.obtenerInstancia(application)
+                val db = AppDatabase.obtenerInstancia(context = application)
                 val repo = ProductoRepositoryImpl(
                     api = api,
                     dao = db.productoDao(),
                     carritoDao = db.carritoDao(),
-                    historialDao = db.historialDao()
+                    historialDao = db.historialDao(),
+                    favoritoDao = db.favoritoDao(),
                 )
                 val notificador = NotificadorAndroid(application)
 

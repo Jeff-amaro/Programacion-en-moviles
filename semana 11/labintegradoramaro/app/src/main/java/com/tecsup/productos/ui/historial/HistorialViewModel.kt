@@ -45,10 +45,11 @@ class HistorialViewModel(
                 val api = com.tecsup.productos.data.remote.RetrofitClient.api
                 val db = com.tecsup.productos.data.local.AppDatabase.obtenerInstancia(application)
                 val repo = com.tecsup.productos.data.repository.ProductoRepositoryImpl(
-                    api = api,
+                    api = com.tecsup.productos.data.remote.RetrofitClient.api,
                     dao = db.productoDao(),
                     carritoDao = db.carritoDao(),
-                    historialDao = db.historialDao()
+                    historialDao = db.historialDao(),
+                    favoritoDao = db.favoritoDao(),
                 )
 
                 return HistorialViewModel(repo) as T
