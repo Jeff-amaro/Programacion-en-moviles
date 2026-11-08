@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.tecsup.productos.domain.model.Rol
 import com.tecsup.productos.ui.admin.AdminScreen
 import com.tecsup.productos.ui.detalle.DetalleScreen
+import com.tecsup.productos.ui.favoritos.FavoritosScreen
 import com.tecsup.productos.ui.lista.ListaScreen
 import com.tecsup.productos.ui.login.LoginScreen
 
@@ -39,7 +40,7 @@ fun AppNavigation() {
                 onVerCatalogo = { navController.navigate(Rutas.Lista.ruta) },
                 onCerrarSesion = {
                     navController.navigate(Rutas.Login.ruta) {
-                        popUpTo(0) // Limpia todo el historial de pantallas al salir
+                        popUpTo(0)
                     }
                 }
             )
@@ -47,6 +48,23 @@ fun AppNavigation() {
 
         composable(Rutas.Lista.ruta) {
             ListaScreen(
+                onProductoClick = { id ->
+                    navController.navigate(Rutas.Detalle.crearRuta(id))
+                },
+                onVerFavoritos = {
+                    navController.navigate("favoritos")
+                },
+                onCerrarSesion = {
+                    navController.navigate(Rutas.Login.ruta) {
+                        popUpTo(0)
+                    }
+                }
+            )
+        }
+
+        composable("favoritos") {
+            FavoritosScreen(
+                onVolver = { navController.popBackStack() },
                 onProductoClick = { id ->
                     navController.navigate(Rutas.Detalle.crearRuta(id))
                 }

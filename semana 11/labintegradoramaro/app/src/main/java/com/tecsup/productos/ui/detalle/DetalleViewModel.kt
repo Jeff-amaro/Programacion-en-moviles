@@ -3,6 +3,7 @@ package com.tecsup.productos.ui.detalle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.tecsup.productos.data.local.AppDatabase
 import com.tecsup.productos.data.remote.RetrofitClient
 import com.tecsup.productos.data.repository.ProductoRepository
 import com.tecsup.productos.data.repository.ProductoRepositoryImpl
@@ -32,20 +33,31 @@ class DetalleViewModel(
         }
     }
 
+    fun alternarFavorito(id: Int) {
+        viewModelScope.launch {
+            repo.alternarFavorito(id)
+            val estadoActual = _estado.value
+            if (estadoActual is UiState.Exito) {
+                val productoActualizado = estadoActual.datos.copy(
+                    esFavorito = !estadoActual.datos.esFavorito
+                )
+                _estado.value = UiState.Exito(productoActualizado)
+            }
+        }
+    }
+
     companion object {
-        val Factory: androidx.lifecycle.ViewModelProvider.Factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : androidx.lifecycle.ViewModel> create(
+            override fun <T : ViewModel> create(
                 modelClass: Class<T>,
                 extras: androidx.lifecycle.viewmodel.CreationExtras
             ): T {
-                val application = checkNotNull(extras[androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-
-                val api = com.tecsup.productos.data.remote.RetrofitClient.api
-                val db = com.tecsup.productos.data.local.AppDatabase.obtenerInstancia(application)
-
-                val repo = com.tecsup.productos.data.repository.ProductoRepositoryImpl(api, db.productoDao())
-                return modelClass.getConstructor(com.tecsup.productos.data.repository.ProductoRepository::class.java).newInstance(repo)
+                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+                val api = RetrofitClient.api
+                val db = AppDatabase.obtenerInstancia(application)
+                val repo = ProductoRepositoryImpl(api, db.productoDao())
+                return modelClass.getConstructor(ProductoRepository::class.java).newInstance(repo)
             }
         }
     }

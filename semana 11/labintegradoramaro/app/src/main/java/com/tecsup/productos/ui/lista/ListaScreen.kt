@@ -6,7 +6,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,48 +27,82 @@ import com.tecsup.productos.ui.UiState
 import com.tecsup.productos.ui.components.Cargando
 import com.tecsup.productos.ui.components.ErrorView
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaScreen(
     viewModel: ListaViewModel = viewModel(factory = ListaViewModel.Factory),
-    onProductoClick: (Int) -> Unit = {}
+    onProductoClick: (Int) -> Unit = {},
+    onVerFavoritos: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility(visible = aviso != null) {
-            aviso?.let { mensaje ->
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    tonalElevation = 4.dp
-                ) {
-                    Text(
-                        text = mensaje,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
-                    )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Catálogo", fontWeight = FontWeight.SemiBold) },
+                actions = {
+                    IconButton(onClick = onVerFavoritos) {
+                        Icon(
+                            imageVector = Icons.Rounded.Favorite,
+                            contentDescription = "Ver Favoritos",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                    IconButton(onClick = onCerrarSesion) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
+                            contentDescription = "Cerrar Sesión",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            AnimatedVisibility(visible = aviso != null) {
+                aviso?.let { mensaje ->
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        tonalElevation = 4.dp
+                    ) {
+                        Text(
+                            text = mensaje,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
-        }
 
-        Box(modifier = Modifier.weight(1f)) {
-            when (val actual = estado) {
-                is UiState.Cargando -> Cargando()
-                is UiState.Error -> ErrorView(
-                    mensaje = actual.mensaje,
-                    onReintentar = { viewModel.refrescar() }
-                )
-                is UiState.Exito -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(actual.datos) { producto ->
-                            ProductoCard(producto = producto, onClick = { onProductoClick(producto.id) })
+            Box(modifier = Modifier.weight(1f)) {
+                when (val actual = estado) {
+                    is UiState.Cargando -> Cargando()
+                    is UiState.Error -> ErrorView(
+                        mensaje = actual.mensaje,
+                        onReintentar = { viewModel.refrescar() }
+                    )
+                    is UiState.Exito -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(actual.datos) { producto ->
+                                ProductoCard(producto = producto, onClick = { onProductoClick(producto.id) })
+                            }
                         }
                     }
                 }
