@@ -4,7 +4,6 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,7 +15,6 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.DeleteSweep
-import androidx.compose.material.icons.rounded.ExitToApp
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Save
@@ -30,7 +28,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +36,7 @@ fun AdminScreen(
     viewModel: AdminViewModel = viewModel(factory = AdminViewModel.Factory),
     onVerCatalogo: () -> Unit,
     onVerPerfil: () -> Unit = {},
-    onCerrarSesion: () -> Unit
+    onCerrarSesion: () -> Unit = {}
 ) {
     val totalGuardados by viewModel.totalGuardados.collectAsState()
     val totalFavoritos by viewModel.totalFavoritos.collectAsState()
@@ -48,7 +45,7 @@ fun AdminScreen(
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) {  }
+    ) { }
 
     LaunchedEffect(Unit) {
         viewModel.actualizarTotales()
@@ -60,26 +57,7 @@ fun AdminScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Panel de Administrador", fontWeight = FontWeight.SemiBold) },
-                actions = {
-                    IconButton(onClick = onVerPerfil) {
-                        Icon(
-                            imageVector = Icons.Rounded.Person,
-                            contentDescription = "Ver Perfil",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = {
-                        viewModel.cerrarSesion()
-                        onCerrarSesion()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Rounded.ExitToApp,
-                            contentDescription = "Salir",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                },
+                title = { Text("Panel de Administrador", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -93,9 +71,9 @@ fun AdminScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     text = "Resumen del Sistema",
                     style = MaterialTheme.typography.titleMedium,
@@ -123,7 +101,7 @@ fun AdminScreen(
                 }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     text = "Mantenimiento",
                     style = MaterialTheme.typography.titleMedium,
@@ -153,24 +131,33 @@ fun AdminScreen(
                 }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = "Navegación",
+                    text = "Gestión y Navegación",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                OutlinedButton(
-                    onClick = onVerCatalogo,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                ElevatedCard(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
-                    Icon(Icons.Rounded.Storefront, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Ver Catálogo de Productos", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    ActionRow(
+                        titulo = "Ver Catálogo de Productos",
+                        icono = Icons.Rounded.Storefront,
+                        color = MaterialTheme.colorScheme.primary,
+                        onClick = onVerCatalogo
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    ActionRow(
+                        titulo = "Mi Perfil de Administrador",
+                        icono = Icons.Rounded.Person,
+                        color = MaterialTheme.colorScheme.secondary,
+                        onClick = onVerPerfil
+                    )
                 }
             }
         }

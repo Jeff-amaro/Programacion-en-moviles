@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.tecsup.productos.domain.model.Rol
 import com.tecsup.productos.ui.admin.AdminScreen
 import com.tecsup.productos.ui.carrito.CarritoScreen
+import com.tecsup.productos.ui.checkout.CheckoutScreen
 import com.tecsup.productos.ui.detalle.DetalleScreen
 import com.tecsup.productos.ui.favoritos.FavoritosScreen
 import com.tecsup.productos.ui.historial.HistorialScreen
@@ -61,7 +62,6 @@ fun AppNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStackEntry?.destination?.route
 
-    // La barra inferior solo se muestra en las pantallas principales del usuario
     val mostrarBottomBar = itemsBottomBar.any { it.ruta == rutaActual }
 
     Scaffold(
@@ -189,6 +189,15 @@ fun AppNavigation(
                 CarritoScreen(
                     onVolver = { navController.popBackStack() },
                     onCompraExitosa = {
+                        navController.navigate("checkout")
+                    }
+                )
+            }
+
+            composable("checkout") {
+                CheckoutScreen(
+                    onVolver = { navController.popBackStack() },
+                    onPagoExitoso = {
                         navController.navigate(Rutas.Lista.ruta) {
                             popUpTo(Rutas.Lista.ruta) { inclusive = true }
                         }
