@@ -9,9 +9,11 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.tecsup.productos.domain.model.Rol
 import com.tecsup.productos.ui.admin.AdminScreen
 import com.tecsup.productos.ui.carrito.CarritoScreen
+import com.tecsup.productos.ui.carrito.CarritoViewModel
 import com.tecsup.productos.ui.checkout.CheckoutScreen
 import com.tecsup.productos.ui.detalle.DetalleScreen
 import com.tecsup.productos.ui.favoritos.FavoritosScreen
@@ -43,13 +46,17 @@ sealed class BottomNavItem(
     object Perfil : BottomNavItem("perfil_user", "Perfil", Icons.Default.Person)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
     modoOscuro: Boolean = false,
-    onCambiarTema: (Boolean) -> Unit = {}
+    onCambiarTema: (Boolean) -> Unit = {},
+    carritoViewModel: CarritoViewModel = viewModel(factory = CarritoViewModel.Factory)
 ) {
     val navController = rememberNavController()
     val emailActual = FirebaseAuth.getInstance().currentUser?.email ?: ""
+    val itemsCarrito by carritoViewModel.itemsCarrito.collectAsState()
+    val cantidadTotalCarrito = itemsCarrito.sumOf { it.cantidad }
 
     val itemsBottomBar = listOf(
         BottomNavItem.Catalogo,
@@ -71,7 +78,21 @@ fun AppNavigation(
                     itemsBottomBar.forEach { item ->
                         val seleccionado = rutaActual == item.ruta
                         NavigationBarItem(
-                            icon = { Icon(item.icono, contentDescription = item.titulo) },
+                            icon = {
+                                if (item == BottomNavItem.Carrito && cantidadTotalCarrito > 0) {
+                                    BadgedBox(
+                                        badge = {
+                                            Badge {
+                                                Text(if (cantidadTotalCarrito > 99) "99+" else cantidadTotalCarrito.toString())
+                                            }
+                                        }
+                                    ) {
+                                        Icon(item.icono, contentDescription = item.titulo)
+                                    }
+                                } else {
+                                    Icon(item.icono, contentDescription = item.titulo)
+                                }
+                            },
                             label = { Text(item.titulo) },
                             selected = seleccionado,
                             onClick = {
@@ -96,7 +117,6 @@ fun AppNavigation(
             startDestination = Rutas.Login.ruta,
             modifier = Modifier.padding(paddingValues)
         ) {
-
             composable(Rutas.Login.ruta) {
                 LoginScreen(
                     onLoginExito = { rol ->
