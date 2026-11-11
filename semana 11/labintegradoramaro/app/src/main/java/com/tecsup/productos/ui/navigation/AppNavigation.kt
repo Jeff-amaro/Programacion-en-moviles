@@ -136,6 +136,7 @@ fun AppNavigation(
             composable(Rutas.Admin.ruta) {
                 AdminScreen(
                     onVerCatalogo = { navController.navigate(Rutas.Lista.ruta) },
+                    onVerHistorial = { navController.navigate("historial") }, // <-- Añadido aquí para el Admin
                     onVerPerfil = { navController.navigate("perfil_admin") },
                     onCerrarSesion = {
                         FirebaseAuth.getInstance().signOut()

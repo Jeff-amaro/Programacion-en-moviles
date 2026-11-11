@@ -44,6 +44,7 @@ class FavoritosViewModel(
                     carritoDao = db.carritoDao(),
                     historialDao = db.historialDao(),
                     favoritoDao = db.favoritoDao(),
+                    pedidoDao = db.pedidoDao()
                 )
                 return FavoritosViewModel(repository = repo) as T
             }

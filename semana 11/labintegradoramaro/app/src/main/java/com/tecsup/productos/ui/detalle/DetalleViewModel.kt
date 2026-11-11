@@ -74,6 +74,7 @@ class DetalleViewModel(
                     carritoDao = db.carritoDao(),
                     historialDao = db.historialDao(),
                     favoritoDao = db.favoritoDao(),
+                    pedidoDao = db.pedidoDao()
                 )
                 val notificador = NotificadorAndroid(application)
 

@@ -2,6 +2,7 @@ package com.tecsup.productos.data.repository
 
 import com.tecsup.productos.data.local.CarritoEntity
 import com.tecsup.productos.data.local.HistorialEntity
+import com.tecsup.productos.data.local.PedidoEntity
 import com.tecsup.productos.domain.model.Producto
 import kotlinx.coroutines.flow.Flow
 
@@ -12,6 +13,10 @@ interface ProductoRepository {
     val totalCarrito: Flow<Double?>
     val historialReciente: Flow<List<Producto>>
     val historial: Flow<List<HistorialEntity>>
+    val todosLosPedidos: Flow<List<PedidoEntity>>
+
+    fun obtenerPedidosUsuario(email: String): Flow<List<PedidoEntity>>
+    suspend fun guardarPedido(pedido: PedidoEntity)
 
     suspend fun refrescar(): Result<Int>
     suspend fun obtenerDetalle(id: Int): Result<Producto>

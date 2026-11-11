@@ -2,6 +2,8 @@ package com.tecsup.productos.ui.historial
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.tecsup.productos.data.local.PedidoEntity
 import com.tecsup.productos.data.repository.ProductoRepository
 import com.tecsup.productos.domain.model.Producto
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,6 +16,10 @@ class HistorialViewModel(
     private val repository: ProductoRepository
 ) : ViewModel() {
 
+    private val auth = FirebaseAuth.getInstance()
+    val emailUsuarioActual = auth.currentUser?.email ?: ""
+    val esAdmin = emailUsuarioActual.endsWith("@admin.com") || emailUsuarioActual == "admin@tecsup.edu.pe"
+
     val historialProductos: StateFlow<List<Producto>> = combine(
         repository.historial,
         repository.items
@@ -22,6 +28,16 @@ class HistorialViewModel(
         historialOrdenado.mapNotNull { hist ->
             productosList.find { it.id == hist.idProducto }
         }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    val pedidos: StateFlow<List<PedidoEntity>> = if (esAdmin) {
+        repository.todosLosPedidos
+    } else {
+        repository.obtenerPedidosUsuario(emailUsuarioActual)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -45,11 +61,12 @@ class HistorialViewModel(
                 val api = com.tecsup.productos.data.remote.RetrofitClient.api
                 val db = com.tecsup.productos.data.local.AppDatabase.obtenerInstancia(application)
                 val repo = com.tecsup.productos.data.repository.ProductoRepositoryImpl(
-                    api = com.tecsup.productos.data.remote.RetrofitClient.api,
+                    api = api,
                     dao = db.productoDao(),
                     carritoDao = db.carritoDao(),
                     historialDao = db.historialDao(),
                     favoritoDao = db.favoritoDao(),
+                    pedidoDao = db.pedidoDao()
                 )
 
                 return HistorialViewModel(repo) as T

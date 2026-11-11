@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Storefront
@@ -35,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun AdminScreen(
     viewModel: AdminViewModel = viewModel(factory = AdminViewModel.Factory),
     onVerCatalogo: () -> Unit,
+    onVerHistorial: () -> Unit = {},
     onVerPerfil: () -> Unit = {},
     onCerrarSesion: () -> Unit = {}
 ) {
@@ -147,6 +149,16 @@ fun AdminScreen(
                         icono = Icons.Rounded.Storefront,
                         color = MaterialTheme.colorScheme.primary,
                         onClick = onVerCatalogo
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    ActionRow(
+                        titulo = "Historial de Pedidos Global",
+                        icono = Icons.Rounded.History,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        onClick = onVerHistorial
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),

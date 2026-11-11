@@ -10,9 +10,10 @@ import androidx.room.RoomDatabase
         ProductoEntity::class,
         CarritoEntity::class,
         HistorialEntity::class,
-        FavoritoEntity::class
+        FavoritoEntity::class,
+        PedidoEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,6 +22,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun carritoDao(): CarritoDao
     abstract fun historialDao(): HistorialDao
     abstract fun favoritoDao(): FavoritoDao
+    abstract fun pedidoDao(): PedidoDao
 
     companion object {
         @Volatile

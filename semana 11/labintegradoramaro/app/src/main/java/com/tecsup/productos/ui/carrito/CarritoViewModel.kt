@@ -3,6 +3,7 @@ package com.tecsup.productos.ui.carrito
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.productos.data.local.CarritoEntity
+import com.tecsup.productos.data.local.PedidoEntity
 import com.tecsup.productos.data.repository.ProductoRepository
 import com.tecsup.productos.notification.Notificador
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,6 +46,12 @@ class CarritoViewModel(
         }
     }
 
+    fun guardarPedido(pedido: PedidoEntity) {
+        viewModelScope.launch {
+            repository.guardarPedido(pedido)
+        }
+    }
+
     fun realizarCheckout(onExito: () -> Unit) {
         viewModelScope.launch {
             repository.vaciarCarrito()
@@ -69,6 +76,7 @@ class CarritoViewModel(
                     carritoDao = db.carritoDao(),
                     historialDao = db.historialDao(),
                     favoritoDao = db.favoritoDao(),
+                    pedidoDao = db.pedidoDao()
                 )
                 val notificador = com.tecsup.productos.notification.NotificadorAndroid(application)
 

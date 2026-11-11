@@ -16,8 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.tecsup.productos.ui.carrito.CarritoViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.tecsup.productos.data.local.PedidoEntity
+import com.tecsup.productos.ui.carrito.CarritoViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 enum class MetodoPago { TARJETA, YAPE, CONTRAENTREGA }
 
@@ -29,6 +34,7 @@ fun CheckoutScreen(
     onPagoExitoso: () -> Unit
 ) {
     val total by carritoViewModel.totalCarrito.collectAsState(initial = 0.0)
+    val itemsCarrito by carritoViewModel.itemsCarrito.collectAsState()
 
     var direccion by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
@@ -61,6 +67,20 @@ fun CheckoutScreen(
                 Button(
                     onClick = {
                         mostrarExitoDialog = false
+
+                        val emailActual = FirebaseAuth.getInstance().currentUser?.email ?: "usuario_anonimo"
+                        val fechaActual = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                        val resumenItems = itemsCarrito.joinToString(", ") { "${it.cantidad}x ${it.titulo}" }
+
+                        val nuevoPedido = PedidoEntity(
+                            emailUsuario = emailActual,
+                            fecha = fechaActual,
+                            total = total ?: 0.0,
+                            metodoPago = metodoPago.name,
+                            resumenItems = resumenItems
+                        )
+
+                        carritoViewModel.guardarPedido(nuevoPedido)
                         carritoViewModel.realizarCheckout {
                             onPagoExitoso()
                         }

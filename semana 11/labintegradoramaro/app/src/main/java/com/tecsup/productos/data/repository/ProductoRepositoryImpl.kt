@@ -6,6 +6,8 @@ import com.tecsup.productos.data.local.FavoritoDao
 import com.tecsup.productos.data.local.FavoritoEntity
 import com.tecsup.productos.data.local.HistorialDao
 import com.tecsup.productos.data.local.HistorialEntity
+import com.tecsup.productos.data.local.PedidoDao
+import com.tecsup.productos.data.local.PedidoEntity
 import com.tecsup.productos.data.local.ProductoDao
 import com.tecsup.productos.data.remote.ApiService
 import com.tecsup.productos.domain.model.Producto
@@ -23,7 +25,8 @@ class ProductoRepositoryImpl(
     private val dao: ProductoDao,
     private val carritoDao: CarritoDao,
     private val historialDao: HistorialDao,
-    private val favoritoDao: FavoritoDao
+    private val favoritoDao: FavoritoDao,
+    private val pedidoDao: PedidoDao
 ) : ProductoRepository {
 
     private val auth = FirebaseAuth.getInstance()
@@ -50,6 +53,16 @@ class ProductoRepositoryImpl(
     }
 
     override val historial: Flow<List<HistorialEntity>> = historialDao.obtenerHistorial()
+
+    override val todosLosPedidos: Flow<List<PedidoEntity>> = pedidoDao.obtenerTodosLosPedidos()
+
+    override fun obtenerPedidosUsuario(email: String): Flow<List<PedidoEntity>> {
+        return pedidoDao.obtenerPedidosPorUsuario(email)
+    }
+
+    override suspend fun guardarPedido(pedido: PedidoEntity) {
+        pedidoDao.insertarPedido(pedido)
+    }
 
     override suspend fun refrescar(): Result<Int> = try {
         val respuesta = api.listar("smartphones")
