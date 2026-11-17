@@ -52,6 +52,8 @@ fun PantallaMapa(vm: MapaViewModel) {
     val radioMetros by vm.radioMetros.collectAsState()
     val lugaresEnRadio by vm.lugaresEnRadio.collectAsState()
 
+    val ultimoLugar by vm.ultimoLugar.collectAsState()
+
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { resultado ->
@@ -194,6 +196,68 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
+                }
+            }
+
+            if (ultimoLugar != null) {
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    color = Color(0xFFEAF4F9),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+
+                    Row(
+                        modifier = Modifier.padding(
+                            horizontal = 12.dp,
+                            vertical = 6.dp
+                        ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+
+                            Text(
+                                text = "Último lugar seleccionado",
+                                fontFamily = FontFamily.SansSerif,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF526775)
+                            )
+
+                            Text(
+                                text = ultimoLugar?.nombre.orEmpty(),
+                                fontFamily = FontFamily.SansSerif,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AzulCampus
+                            )
+                        }
+
+                        TextButton(
+                            onClick = {
+                                vm.irAlUltimoLugar()
+                            },
+                            enabled = estado is UbicacionUi.Lista,
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = AzulCampus
+                            )
+                        ) {
+                            Text(
+                                text = "Ir al último lugar",
+                                fontFamily = FontFamily.SansSerif,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
 

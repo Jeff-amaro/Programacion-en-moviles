@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.amaro.campusGPS.data.LugaresRepository
 import com.amaro.campusGPS.data.UbicacionRepository
 import com.amaro.campusGPS.data.UbicacionNoDisponibleException
+import com.amaro.campusGPS.data.UltimoLugarRepository
 import com.amaro.campusGPS.model.Lugar
 import com.amaro.campusGPS.model.LugarConDistancia
 import com.amaro.campusGPS.model.Posicion
@@ -23,7 +24,8 @@ import kotlinx.coroutines.launch
 
 class MapaViewModel(
     private val ubicacionRepo: UbicacionRepository,
-    private val lugaresRepo: LugaresRepository
+    private val lugaresRepo: LugaresRepository,
+    private val ultimoLugarRepo: UltimoLugarRepository
 ) : ViewModel() {
 
     private val _estado =
@@ -80,11 +82,26 @@ class MapaViewModel(
             } else {
                 emptyList()
             }
+
         }.stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             emptyList()
         )
+
+    val ultimoLugar: StateFlow<Lugar?> =
+        ultimoLugarRepo.ultimoLugarId
+            .map { id ->
+                lugaresRepo.obtenerLugares()
+                    .firstOrNull { lugar ->
+                        lugar.id == id
+                    }
+            }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.Eagerly,
+                null
+            )
 
     fun cambiarRadio(metros: Int) {
         if (metros in listOf(100, 200, 500)) {
@@ -170,5 +187,17 @@ class MapaViewModel(
 
     fun seleccionar(id: Int?) {
         _seleccionado.value = id
+
+        if (id != null) {
+            viewModelScope.launch {
+                ultimoLugarRepo.guardarUltimoLugar(id)
+            }
+        }
+    }
+
+    fun irAlUltimoLugar() {
+        if (_estado.value is UbicacionUi.Lista) {
+            _seleccionado.value = ultimoLugar.value?.id
+        }
     }
 }
