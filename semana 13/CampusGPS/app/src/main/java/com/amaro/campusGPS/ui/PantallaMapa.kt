@@ -131,39 +131,42 @@ fun PantallaMapa(vm: MapaViewModel) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            if (estado !is UbicacionUi.Error) {
 
-            OutlinedButton(
-                onClick = {
-                    masCercano?.let { lugar ->
-                        vm.seleccionar(lugar.id)
-                    }
-                },
-                enabled = masCercano != null &&
-                        estado is UbicacionUi.Lista,
-                border = BorderStroke(
-                    width = 2.dp,
-                    color = if (
-                        masCercano != null &&
-                        estado is UbicacionUi.Lista
-                    ) {
-                        AzulCampus
-                    } else {
-                        Color.LightGray
-                    }
-                ),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = AzulCampus,
-                    disabledContentColor = Color.Gray
-                ),
-                shape = RoundedCornerShape(50)
-            ) {
-                Text(
-                    text = "Ir al más cercano",
-                    fontFamily = FontFamily.SansSerif,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        masCercano?.let { lugar ->
+                            vm.seleccionar(lugar.id)
+                        }
+                    },
+                    enabled = masCercano != null &&
+                            estado is UbicacionUi.Lista,
+                    border = BorderStroke(
+                        width = 2.dp,
+                        color = if (
+                            masCercano != null &&
+                            estado is UbicacionUi.Lista
+                        ) {
+                            AzulCampus
+                        } else {
+                            Color.LightGray
+                        }
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = AzulCampus,
+                        disabledContentColor = Color.Gray
+                    ),
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Text(
+                        text = "Ir al más cercano",
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -247,56 +250,23 @@ fun PantallaMapa(vm: MapaViewModel) {
                 }
 
                 is UbicacionUi.Error -> {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = actual.mensaje,
-                            modifier = Modifier.padding(16.dp),
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            fontFamily = FontFamily.SansSerif,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    if (
-                        actual.mensaje.contains(
-                            "permiso",
-                            ignoreCase = true
-                        )
-                    ) {
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedButton(
-                            onClick = {
-                                val intent = Intent(
-                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                                ).apply {
-                                    data = Uri.fromParts(
-                                        "package",
-                                        contexto.packageName,
-                                        null
-                                    )
-                                }
-
-                                contexto.startActivity(intent)
+                    MensajeError(
+                        error = actual,
+                        onAbrirAjustes = {
+                            val intent = Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                            ).apply {
+                                data = Uri.fromParts(
+                                    "package",
+                                    contexto.packageName,
+                                    null
+                                )
                             }
-                        ) {
-                            Text(
-                                text = "Abrir ajustes",
-                                color = AzulCampus,
-                                fontFamily = FontFamily.SansSerif,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
+
+                            contexto.startActivity(intent)
+                        },
+                        onReintentar = alPulsar
+                    )
                 }
             }
 
