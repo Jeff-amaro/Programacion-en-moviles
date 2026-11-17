@@ -1,3 +1,4 @@
+
 package com.amaro.campusGPS
 
 import android.os.Bundle
@@ -5,43 +6,41 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.amaro.campusGPS.data.LugaresRepositoryLocal
+import com.amaro.campusGPS.data.UbicacionRepositoryGoogle
+import com.amaro.campusGPS.ui.PantallaMapa
 import com.amaro.campusGPS.ui.theme.CampusGPSTheme
+import com.amaro.campusGPS.viewmodel.CampusViewModelFactory
+import com.amaro.campusGPS.viewmodel.MapaViewModel
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+
+        val factory = CampusViewModelFactory(
+            ubicacionRepo = UbicacionRepositoryGoogle(applicationContext),
+            lugaresRepo = LugaresRepositoryLocal()
+        )
+
         setContent {
             CampusGPSTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+
+                val vm: MapaViewModel = viewModel(
+                    factory = factory
+                )
+
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    PantallaMapa(vm = vm)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CampusGPSTheme {
-        Greeting("Android")
     }
 }
