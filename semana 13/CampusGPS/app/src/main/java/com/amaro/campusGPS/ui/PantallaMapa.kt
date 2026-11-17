@@ -4,12 +4,15 @@ package com.amaro.campusGPS.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +39,11 @@ private val AzulCampus = Color(0xFF12699C)
 fun PantallaMapa(vm: MapaViewModel) {
 
     val contexto = LocalContext.current
+
+    val esHorizontal =
+        LocalConfiguration.current.orientation ==
+                Configuration.ORIENTATION_LANDSCAPE
+
     val estado by vm.estado.collectAsState()
     val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
@@ -96,7 +105,16 @@ fun PantallaMapa(vm: MapaViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .then(
+                    if (esHorizontal) {
+                        Modifier.verticalScroll(
+                            rememberScrollState()
+                        )
+                    } else {
+                        Modifier
+                    }
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -106,9 +124,15 @@ fun PantallaMapa(vm: MapaViewModel) {
                     lugares = lugares,
                     seleccionado = seleccionado,
                     masCercano = masCercano,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                    modifier = if (esHorizontal) {
+                        Modifier
+                            .fillMaxWidth()
+                            .height(240.dp)
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    }
                 )
             }
 
@@ -283,7 +307,11 @@ fun PantallaMapa(vm: MapaViewModel) {
                     modifier = Modifier.height(220.dp)
                 )
             } else {
-                Spacer(modifier = Modifier.weight(1f))
+                if (esHorizontal) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
