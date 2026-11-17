@@ -1,10 +1,14 @@
 
 package com.amaro.campusGPS.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import com.amaro.campusGPS.model.Lugar
 import com.amaro.campusGPS.model.LugarConDistancia
 import com.amaro.campusGPS.model.UbicacionUi
@@ -31,7 +35,20 @@ fun MapaUbicacion(
     radioMetros: Int = 200
 ) {
 
+    val contexto = LocalContext.current
     val modoOscuro = isSystemInDarkTheme()
+
+    val permisoFino = ContextCompat.checkSelfPermission(
+        contexto,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
+    val permisoAproximado = ContextCompat.checkSelfPermission(
+        contexto,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
+    val permisoUbicacion = permisoFino || permisoAproximado
 
     val camara = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
@@ -187,10 +204,13 @@ fun MapaUbicacion(
         modifier = modifier,
         cameraPositionState = camara,
         properties = MapProperties(
-            mapStyleOptions = estiloMapa
+            mapStyleOptions = estiloMapa,
+            isMyLocationEnabled = permisoUbicacion &&
+                    estado is UbicacionUi.Lista
         ),
         uiSettings = MapUiSettings(
-            zoomControlsEnabled = false
+            zoomControlsEnabled = false,
+            myLocationButtonEnabled = false
         ),
         onMapLoaded = {
             mapaCargado = true
@@ -217,16 +237,6 @@ fun MapaUbicacion(
                 },
                 strokeWidth = 3f,
                 clickable = false
-            )
-
-            Marker(
-                state = rememberUpdatedMarkerState(
-                    position = LatLng(
-                        estado.posicion.latitud,
-                        estado.posicion.longitud
-                    )
-                ),
-                title = "Estás aquí"
             )
         }
 
