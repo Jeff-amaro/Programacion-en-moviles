@@ -13,14 +13,18 @@ import com.amaro.campusGPS.model.Posicion
 import com.amaro.campusGPS.model.TipoError
 import com.amaro.campusGPS.model.UbicacionUi
 import com.amaro.campusGPS.util.distanciaMetros
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
 
 class MapaViewModel(
     private val ubicacionRepo: UbicacionRepository,
@@ -103,6 +107,13 @@ class MapaViewModel(
                 null
             )
 
+    private val _seguimientoActivo = MutableStateFlow(false)
+
+    val seguimientoActivo: StateFlow<Boolean> =
+        _seguimientoActivo.asStateFlow()
+
+    private var seguimientoJob: Job? = null
+
     fun cambiarRadio(metros: Int) {
         if (metros in listOf(100, 200, 500)) {
             _radioMetros.value = metros
@@ -110,6 +121,8 @@ class MapaViewModel(
     }
 
     fun buscar() {
+
+        detenerSeguimiento()
 
         _seleccionado.value = null
 
@@ -130,37 +143,74 @@ class MapaViewModel(
                     _estado.value = UbicacionUi.Lista(posicion)
                 }
                 .onFailure { error ->
-
-                    val tipo = when (error) {
-                        is SecurityException ->
-                            TipoError.SIN_PERMISO
-
-                        is UbicacionNoDisponibleException ->
-                            TipoError.GPS_APAGADO
-
-                        else ->
-                            TipoError.OTRO
-                    }
-
-                    val mensaje = when (tipo) {
-                        TipoError.SIN_PERMISO ->
-                            "Sin permiso de ubicación no puedo mostrar dónde estás"
-
-                        TipoError.GPS_APAGADO ->
-                            "No se pudo obtener la ubicación.\nActiva el GPS e intenta de nuevo"
-
-                        TipoError.SIN_PLAY_SERVICES ->
-                            "Este dispositivo no tiene Google Play Services"
-
-                        TipoError.OTRO ->
-                            error.message ?: "No se pudo obtener la ubicación"
-                    }
-
-                    _estado.value = UbicacionUi.Error(
-                        mensaje = mensaje,
-                        tipo = tipo
-                    )
+                    mostrarError(error)
                 }
+        }
+    }
+
+    fun iniciarSeguimiento() {
+
+        if (_seguimientoActivo.value) {
+            return
+        }
+
+        if (!ubicacionRepo.playServicesDisponible()) {
+            _estado.value = UbicacionUi.Error(
+                mensaje = "Este dispositivo no tiene Google Play Services",
+                tipo = TipoError.SIN_PLAY_SERVICES
+            )
+            return
+        }
+
+        _seleccionado.value = null
+
+        if (_estado.value !is UbicacionUi.Lista) {
+            _estado.value = UbicacionUi.Buscando
+        }
+
+        _seguimientoActivo.value = true
+
+        seguimientoJob = viewModelScope.launch {
+
+            try {
+
+                ubicacionRepo.observarUbicacion()
+                    .collect { posicion ->
+
+                        actualizarDistancias(posicion)
+
+                        _estado.value = UbicacionUi.Lista(
+                            posicion
+                        )
+                    }
+
+            } catch (error: CancellationException) {
+
+                throw error
+
+            } catch (error: Exception) {
+
+                mostrarError(error)
+
+            } finally {
+
+                if (seguimientoJob === coroutineContext[Job]) {
+                    seguimientoJob = null
+                    _seguimientoActivo.value = false
+                }
+            }
+        }
+    }
+
+    fun detenerSeguimiento() {
+
+        seguimientoJob?.cancel()
+        seguimientoJob = null
+
+        _seguimientoActivo.value = false
+
+        if (_estado.value is UbicacionUi.Buscando) {
+            _estado.value = UbicacionUi.Inicial
         }
     }
 
@@ -178,7 +228,43 @@ class MapaViewModel(
         _lugares.value = listaOrdenada
     }
 
+    private fun mostrarError(error: Throwable) {
+
+        val tipo = when (error) {
+            is SecurityException ->
+                TipoError.SIN_PERMISO
+
+            is UbicacionNoDisponibleException ->
+                TipoError.GPS_APAGADO
+
+            else ->
+                TipoError.OTRO
+        }
+
+        val mensaje = when (tipo) {
+            TipoError.SIN_PERMISO ->
+                "Sin permiso de ubicación no puedo mostrar dónde estás"
+
+            TipoError.GPS_APAGADO ->
+                "No se pudo obtener la ubicación.\nActiva el GPS e intenta de nuevo"
+
+            TipoError.SIN_PLAY_SERVICES ->
+                "Este dispositivo no tiene Google Play Services"
+
+            TipoError.OTRO ->
+                error.message ?: "No se pudo obtener la ubicación"
+        }
+
+        _estado.value = UbicacionUi.Error(
+            mensaje = mensaje,
+            tipo = tipo
+        )
+    }
+
     fun permisoDenegado() {
+
+        detenerSeguimiento()
+
         _estado.value = UbicacionUi.Error(
             mensaje = "Sin permiso de ubicación no puedo mostrar dónde estás",
             tipo = TipoError.SIN_PERMISO
@@ -186,6 +272,7 @@ class MapaViewModel(
     }
 
     fun seleccionar(id: Int?) {
+
         _seleccionado.value = id
 
         if (id != null) {

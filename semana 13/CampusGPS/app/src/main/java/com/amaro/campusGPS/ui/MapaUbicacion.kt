@@ -29,6 +29,7 @@ fun MapaUbicacion(
     modifier: Modifier = Modifier,
     radioMetros: Int = 200
 ) {
+
     val camara = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
             LatLng(-12.0464, -77.0428),
@@ -77,54 +78,62 @@ fun MapaUbicacion(
         )
     }
 
+    val posicionActual = (
+            estado as? UbicacionUi.Lista
+            )?.posicion
+
+    val hayUbicacion = posicionActual != null
+
     LaunchedEffect(
-        estado,
-        seleccionado,
         mapaCargado,
-        radioMetros
+        seleccionado,
+        radioMetros,
+        hayUbicacion
     ) {
 
-        if (!mapaCargado) return@LaunchedEffect
+        if (!mapaCargado) {
+            return@LaunchedEffect
+        }
 
-        if (estado is UbicacionUi.Lista) {
+        val posicion = posicionActual
+            ?: return@LaunchedEffect
 
-            val lugar = lugares.firstOrNull {
-                it.lugar.id == seleccionado
-            }?.lugar
+        val lugarSeleccionado = lugares.firstOrNull {
+            it.lugar.id == seleccionado
+        }?.lugar
 
-            if (lugar != null) {
+        if (lugarSeleccionado != null) {
 
-                camara.animate(
-                    update = CameraUpdateFactory.newLatLngZoom(
-                        LatLng(
-                            lugar.latitud,
-                            lugar.longitud
-                        ),
-                        17f
+            camara.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        lugarSeleccionado.latitud,
+                        lugarSeleccionado.longitud
                     ),
-                    durationMs = 1000
-                )
+                    17f
+                ),
+                durationMs = 1000
+            )
 
-            } else {
+        } else {
 
-                val zoomUbicacion = when (radioMetros) {
-                    100 -> 17f
-                    200 -> 16f
-                    500 -> 15f
-                    else -> 16f
-                }
-
-                camara.animate(
-                    update = CameraUpdateFactory.newLatLngZoom(
-                        LatLng(
-                            estado.posicion.latitud,
-                            estado.posicion.longitud
-                        ),
-                        zoomUbicacion
-                    ),
-                    durationMs = 1000
-                )
+            val zoomUbicacion = when (radioMetros) {
+                100 -> 17f
+                200 -> 16f
+                500 -> 15f
+                else -> 16f
             }
+
+            camara.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        posicion.latitud,
+                        posicion.longitud
+                    ),
+                    zoomUbicacion
+                ),
+                durationMs = 1000
+            )
         }
     }
 

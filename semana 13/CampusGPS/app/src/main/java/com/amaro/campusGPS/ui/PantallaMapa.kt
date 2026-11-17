@@ -2,11 +2,14 @@
 package com.amaro.campusGPS.ui
 
 import android.Manifest
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -27,12 +30,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.amaro.campusGPS.model.UbicacionUi
 import com.amaro.campusGPS.util.formatearDistancia
 import com.amaro.campusGPS.viewmodel.MapaViewModel
 import java.util.Locale
 
 private val AzulCampus = Color(0xFF12699C)
+private val RojoSeguimiento = Color(0xFFC62828)
+private val VerdeSeguimiento = Color(0xFF238C59)
+
+private fun Context.obtenerActividad(): ComponentActivity? {
+    var actual: Context = this
+
+    while (actual is ContextWrapper) {
+        if (actual is ComponentActivity) {
+            return actual
+        }
+
+        val base = actual.baseContext
+
+        if (base === actual) {
+            break
+        }
+
+        actual = base
+    }
+
+    return actual as? ComponentActivity
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +80,27 @@ fun PantallaMapa(vm: MapaViewModel) {
     val lugaresEnRadio by vm.lugaresEnRadio.collectAsState()
 
     val ultimoLugar by vm.ultimoLugar.collectAsState()
+    val seguimientoActivo by vm.seguimientoActivo.collectAsState()
+
+    val actividad = remember(contexto) {
+        contexto.obtenerActividad()
+    }
+
+    DisposableEffect(actividad, vm) {
+
+        val observador = LifecycleEventObserver { _, evento ->
+            if (evento == Lifecycle.Event.ON_STOP) {
+                vm.detenerSeguimiento()
+            }
+        }
+
+        actividad?.lifecycle?.addObserver(observador)
+
+        onDispose {
+            actividad?.lifecycle?.removeObserver(observador)
+            vm.detenerSeguimiento()
+        }
+    }
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -64,7 +112,18 @@ fun PantallaMapa(vm: MapaViewModel) {
         }
     }
 
+    val lanzadorSeguimiento = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { resultado ->
+        if (resultado.values.any { it }) {
+            vm.iniciarSeguimiento()
+        } else {
+            vm.permisoDenegado()
+        }
+    }
+
     val alPulsar: () -> Unit = {
+
         val permisoFino = ContextCompat.checkSelfPermission(
             contexto,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -84,6 +143,37 @@ fun PantallaMapa(vm: MapaViewModel) {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
             )
+        }
+    }
+
+    val alPulsarSeguimiento: () -> Unit = {
+
+        if (seguimientoActivo) {
+
+            vm.detenerSeguimiento()
+
+        } else {
+
+            val permisoFino = ContextCompat.checkSelfPermission(
+                contexto,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+            val permisoAproximado = ContextCompat.checkSelfPermission(
+                contexto,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (permisoFino || permisoAproximado) {
+                vm.iniciarSeguimiento()
+            } else {
+                lanzadorSeguimiento.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
         }
     }
 
@@ -124,6 +214,7 @@ fun PantallaMapa(vm: MapaViewModel) {
         ) {
 
             if (estado !is UbicacionUi.Error) {
+
                 MapaUbicacion(
                     estado = estado,
                     lugares = lugares,
@@ -144,20 +235,80 @@ fun PantallaMapa(vm: MapaViewModel) {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Button(
-                onClick = alPulsar,
-                enabled = estado !is UbicacionUi.Buscando,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AzulCampus
-                ),
-                shape = RoundedCornerShape(50)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+
+                Button(
+                    onClick = alPulsar,
+                    enabled = estado !is UbicacionUi.Buscando &&
+                            !seguimientoActivo,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AzulCampus
+                    ),
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Text(
+                        text = "Obtener mi ubicación",
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = alPulsarSeguimiento,
+                    enabled = seguimientoActivo ||
+                            estado !is UbicacionUi.Buscando,
+                    modifier = Modifier.weight(1f),
+                    border = BorderStroke(
+                        width = 2.dp,
+                        color = if (seguimientoActivo) {
+                            RojoSeguimiento
+                        } else {
+                            AzulCampus
+                        }
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (seguimientoActivo) {
+                            RojoSeguimiento
+                        } else {
+                            AzulCampus
+                        }
+                    ),
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Text(
+                        text = if (seguimientoActivo) {
+                            "Detener seguimiento"
+                        } else {
+                            "Iniciar seguimiento"
+                        },
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            if (seguimientoActivo) {
+
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Text(
-                    text = "Obtener mi ubicación",
+                    text = "● Seguimiento GPS activo",
                     fontFamily = FontFamily.SansSerif,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.sp
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = VerdeSeguimiento
                 )
             }
 
@@ -277,6 +428,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     listOf(100, 200, 500).forEach { metros ->
 
                         FilterChip(
@@ -325,6 +477,7 @@ fun PantallaMapa(vm: MapaViewModel) {
             Spacer(modifier = Modifier.height(4.dp))
 
             if (estado is UbicacionUi.Lista) {
+
                 masCercano?.let { lugar ->
 
                     val metros = lugares.firstOrNull {
@@ -332,6 +485,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     }?.metros
 
                     if (metros != null) {
+
                         Text(
                             text = "Más cercano: ${lugar.nombre} " +
                                     "(${formatearDistancia(metros)})",
@@ -352,6 +506,7 @@ fun PantallaMapa(vm: MapaViewModel) {
             when (val actual = estado) {
 
                 is UbicacionUi.Inicial -> {
+
                     Text(
                         text = "Presiona el botón para obtener tu ubicación",
                         fontFamily = FontFamily.SansSerif,
@@ -363,6 +518,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 }
 
                 is UbicacionUi.Buscando -> {
+
                     CircularProgressIndicator(
                         color = AzulCampus
                     )
@@ -377,6 +533,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 }
 
                 is UbicacionUi.Lista -> {
+
                     Text(
                         text = String.format(
                             Locale.US,
@@ -403,6 +560,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 }
 
                 is UbicacionUi.Error -> {
+
                     MensajeError(
                         error = actual,
                         onAbrirAjustes = {
@@ -426,6 +584,7 @@ fun PantallaMapa(vm: MapaViewModel) {
             Spacer(modifier = Modifier.height(8.dp))
 
             if (estado !is UbicacionUi.Error) {
+
                 ListaLugares(
                     lugares = lugares,
                     seleccionado = seleccionado,
@@ -435,7 +594,9 @@ fun PantallaMapa(vm: MapaViewModel) {
                     },
                     modifier = Modifier.height(220.dp)
                 )
+
             } else {
+
                 if (esHorizontal) {
                     Spacer(modifier = Modifier.height(16.dp))
                 } else {
