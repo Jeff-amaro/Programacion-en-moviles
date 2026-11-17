@@ -1,7 +1,7 @@
 
-package com.tecsup.amaro.data
+package com.amaro.campusGPS.data
 
-import com.tecsup.amaro.model.Lugar
+import com.amaro.campusGPS.model.Lugar
 
 interface LugaresRepository {
     fun obtenerLugares(): List<Lugar>

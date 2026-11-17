@@ -1,12 +1,12 @@
 
-package com.tecsup.amaro.data
+package com.amaro.campusGPS.data
 
 import android.annotation.SuppressLint
 import android.content.Context
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.tecsup.amaro.model.Posicion
+import com.amaro.campusGPS.model.Posicion
 import kotlinx.coroutines.tasks.await
 
 class UbicacionRepositoryGoogle(

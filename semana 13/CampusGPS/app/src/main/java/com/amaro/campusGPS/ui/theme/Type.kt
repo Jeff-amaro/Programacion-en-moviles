@@ -1,4 +1,4 @@
-package com.tecsup.amaro.ui.theme
+package com.amaro.campusGPS.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

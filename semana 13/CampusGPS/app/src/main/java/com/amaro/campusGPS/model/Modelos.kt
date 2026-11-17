@@ -1,5 +1,5 @@
 
-package com.tecsup.amaro.model
+package com.amaro.campusGPS.model
 
 data class Posicion(
     val latitud: Double,

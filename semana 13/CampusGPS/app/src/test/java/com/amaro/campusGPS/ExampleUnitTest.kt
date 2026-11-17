@@ -1,4 +1,4 @@
-package com.tecsup.amaro
+package com.amaro.campusGPS
 
 import org.junit.Test
 

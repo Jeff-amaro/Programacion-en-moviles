@@ -1,7 +1,7 @@
 
-package com.tecsup.amaro.data
+package com.amaro.campusGPS.data
 
-import com.tecsup.amaro.model.Posicion
+import com.amaro.campusGPS.model.Posicion
 
 interface UbicacionRepository {
     suspend fun obtenerPosicion(): Result<Posicion>

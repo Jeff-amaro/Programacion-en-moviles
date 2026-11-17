@@ -1,12 +1,12 @@
 
-package com.tecsup.amaro.viewmodel
+package com.amaro.campusGPS.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tecsup.amaro.data.LugaresRepository
-import com.tecsup.amaro.data.UbicacionRepository
-import com.tecsup.amaro.model.LugarConDistancia
-import com.tecsup.amaro.model.UbicacionUi
+import com.amaro.campusGPS.data.LugaresRepository
+import com.amaro.campusGPS.data.UbicacionRepository
+import com.amaro.campusGPS.model.LugarConDistancia
+import com.amaro.campusGPS.model.UbicacionUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

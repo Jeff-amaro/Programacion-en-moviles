@@ -1,10 +1,10 @@
 
-package com.tecsup.amaro.viewmodel
+package com.amaro.campusGPS.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.tecsup.amaro.data.LugaresRepository
-import com.tecsup.amaro.data.UbicacionRepository
+import com.amaro.campusGPS.data.LugaresRepository
+import com.amaro.campusGPS.data.UbicacionRepository
 
 class CampusViewModelFactory(
     private val ubicacionRepo: UbicacionRepository,
