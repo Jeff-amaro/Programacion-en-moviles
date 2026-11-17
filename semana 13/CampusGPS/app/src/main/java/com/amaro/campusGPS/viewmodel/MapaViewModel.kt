@@ -40,6 +40,7 @@ class MapaViewModel(
         _seleccionado.asStateFlow()
 
     fun buscar() {
+        _seleccionado.value = null
         _estado.value = UbicacionUi.Buscando
 
         viewModelScope.launch {
@@ -75,7 +76,10 @@ class MapaViewModel(
         )
     }
 
-    // TODO Paso 6: fun seleccionar(id: Int?)
+    fun seleccionar(id: Int?) {
+        _seleccionado.value = id
+    }
+
     // TODO Paso 7: val masCercano: StateFlow<Lugar?>
 
     private fun mensajeDe(e: Throwable): String = when (e) {

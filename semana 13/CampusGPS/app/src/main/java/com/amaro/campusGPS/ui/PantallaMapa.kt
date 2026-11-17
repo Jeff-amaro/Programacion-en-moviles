@@ -97,7 +97,7 @@ fun PantallaMapa(vm: MapaViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            if (estado is UbicacionUi.Lista) {
+            if (estado !is UbicacionUi.Error) {
                 MapaUbicacion(
                     estado = estado,
                     lugares = lugares,
@@ -108,7 +108,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Button(
                 onClick = alPulsar,
@@ -127,7 +127,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             when (val actual = estado) {
 
@@ -138,7 +138,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(8.dp)
                     )
                 }
 
@@ -235,11 +235,22 @@ fun PantallaMapa(vm: MapaViewModel) {
                 }
             }
 
-            Spacer(
-                modifier = Modifier.weight(0.75f)
-            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (estado !is UbicacionUi.Error) {
+                ListaLugares(
+                    lugares = lugares,
+                    seleccionado = seleccionado,
+                    onClick = { id ->
+                        vm.seleccionar(id)
+                    },
+                    modifier = Modifier.height(220.dp)
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

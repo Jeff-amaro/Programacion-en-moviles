@@ -72,20 +72,42 @@ fun MapaUbicacion(
         )
     }
 
-    LaunchedEffect(estado, mapaCargado) {
-        if (mapaCargado && estado is UbicacionUi.Lista) {
-            val posicion = LatLng(
-                estado.posicion.latitud,
-                estado.posicion.longitud
-            )
+    LaunchedEffect(estado, seleccionado, mapaCargado) {
 
-            camara.animate(
-                update = CameraUpdateFactory.newLatLngZoom(
-                    posicion,
-                    16f
-                ),
-                durationMs = 1000
-            )
+        if (!mapaCargado) return@LaunchedEffect
+
+        if (estado is UbicacionUi.Lista) {
+
+            val lugar = lugares.firstOrNull {
+                it.lugar.id == seleccionado
+            }?.lugar
+
+            if (lugar != null) {
+
+                camara.animate(
+                    update = CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            lugar.latitud,
+                            lugar.longitud
+                        ),
+                        17f
+                    ),
+                    durationMs = 1000
+                )
+
+            } else {
+
+                camara.animate(
+                    update = CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            estado.posicion.latitud,
+                            estado.posicion.longitud
+                        ),
+                        16f
+                    ),
+                    durationMs = 1000
+                )
+            }
         }
     }
 
@@ -102,6 +124,7 @@ fun MapaUbicacion(
             mapaCargado = true
         }
     ) {
+
         if (estado is UbicacionUi.Lista) {
             Marker(
                 state = rememberUpdatedMarkerState(
