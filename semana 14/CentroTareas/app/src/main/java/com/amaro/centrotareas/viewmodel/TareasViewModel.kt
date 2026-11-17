@@ -1,4 +1,3 @@
-
 package com.amaro.centrotareas.viewmodel
 
 import android.util.Log
@@ -24,11 +23,15 @@ class TareasViewModel(
     private val _mensaje = MutableStateFlow("Listo")
     val mensaje: StateFlow<String> = _mensaje.asStateFlow()
 
-    // PASO 2: Tarea larga usando corrutinas
+    // PASO 3: Progreso de 0 a 100 %
+
+    private val _progreso = MutableStateFlow(0f)
+    val progreso: StateFlow<Float> = _progreso.asStateFlow()
 
     fun tareaLarga() {
         viewModelScope.launch {
 
+            _progreso.value = 0f
             _mensaje.value = "Trabajando..."
 
             Log.d(
@@ -43,7 +46,10 @@ class TareasViewModel(
                     "Dentro: ${Thread.currentThread().name}"
                 )
 
-                delay(4000)
+                for (i in 1..100) {
+                    delay(40)
+                    _progreso.value = i / 100f
+                }
             }
 
             Log.d(
@@ -55,7 +61,6 @@ class TareasViewModel(
         }
     }
 
-    // TODO Paso 3: progreso
     // TODO Paso 4: trabajo, corriendo y cancelar()
 
     // Contar primos: paso 5

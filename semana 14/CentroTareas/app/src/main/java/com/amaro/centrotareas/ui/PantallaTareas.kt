@@ -1,3 +1,4 @@
+
 package com.amaro.centrotareas.ui
 
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import com.amaro.centrotareas.viewmodel.TareasViewModel
 fun PantallaTareas(viewModel: TareasViewModel) {
 
     val mensaje by viewModel.mensaje.collectAsState()
+    val progreso by viewModel.progreso.collectAsState()
     val primos by viewModel.primos.collectAsState()
     val carga by viewModel.carga.collectAsState()
 
@@ -81,16 +83,22 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                     Button(
                         onClick = {
                             viewModel.tareaLarga()
-                        },
-                        enabled = true
+                        }
                     ) {
-                        Text("Tarea larga")
+                        Text("Iniciar")
                     }
-
 
                     Text(mensaje)
 
-                    // TODO Paso 3: barra de progreso
+                    // PASO 3: Barra de progreso
+                    LinearProgressIndicator(
+                        progress = { progreso },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = "${(progreso * 100).toInt()} %"
+                    )
                     // TODO Paso 4: botón Cancelar
                 }
             }
@@ -115,7 +123,9 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                     OutlinedTextField(
                         value = hasta,
                         onValueChange = { hasta = it },
-                        label = { Text("Hasta qué número") },
+                        label = {
+                            Text("Hasta qué número")
+                        },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number
                         ),
