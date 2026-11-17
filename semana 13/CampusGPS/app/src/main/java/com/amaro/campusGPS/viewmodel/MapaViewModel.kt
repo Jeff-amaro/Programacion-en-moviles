@@ -1,4 +1,3 @@
-
 package com.amaro.campusGPS.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -6,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.amaro.campusGPS.data.LugaresRepository
 import com.amaro.campusGPS.data.UbicacionRepository
 import com.amaro.campusGPS.model.LugarConDistancia
+import com.amaro.campusGPS.model.Posicion
 import com.amaro.campusGPS.model.UbicacionUi
+import com.amaro.campusGPS.util.distanciaMetros
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,15 +46,27 @@ class MapaViewModel(
             ubicacionRepo.obtenerPosicion()
                 .onSuccess { posicion ->
                     _estado.value = UbicacionUi.Lista(posicion)
-
-                    // TODO Paso 5:
-                    // actualizarDistancias(posicion)
+                    actualizarDistancias(posicion)
                 }
                 .onFailure {
                     _estado.value =
                         UbicacionUi.Error(mensajeDe(it))
                 }
         }
+    }
+
+    private fun actualizarDistancias(pos: Posicion) {
+
+        val listaOrdenada = lugaresRepo.obtenerLugares()
+            .map { lugar ->
+                LugarConDistancia(
+                    lugar = lugar,
+                    metros = distanciaMetros(pos, lugar)
+                )
+            }
+            .sortedBy { it.metros }
+
+        _lugares.value = listaOrdenada
     }
 
     fun permisoDenegado() {
