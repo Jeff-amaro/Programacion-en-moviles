@@ -8,6 +8,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.amaro.campusGPS.model.UbicacionUi
+import com.amaro.campusGPS.util.formatearDistancia
 import com.amaro.campusGPS.viewmodel.MapaViewModel
 import java.util.Locale
 
@@ -36,6 +38,7 @@ fun PantallaMapa(vm: MapaViewModel) {
     val estado by vm.estado.collectAsState()
     val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
+    val masCercano by vm.masCercano.collectAsState()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -102,6 +105,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     estado = estado,
                     lugares = lugares,
                     seleccionado = seleccionado,
+                    masCercano = masCercano,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -122,9 +126,69 @@ fun PantallaMapa(vm: MapaViewModel) {
                     text = "Obtener mi ubicación",
                     fontFamily = FontFamily.SansSerif,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = 0.sp
                 )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            OutlinedButton(
+                onClick = {
+                    masCercano?.let { lugar ->
+                        vm.seleccionar(lugar.id)
+                    }
+                },
+                enabled = masCercano != null &&
+                        estado is UbicacionUi.Lista,
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = if (
+                        masCercano != null &&
+                        estado is UbicacionUi.Lista
+                    ) {
+                        AzulCampus
+                    } else {
+                        Color.LightGray
+                    }
+                ),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = AzulCampus,
+                    disabledContentColor = Color.Gray
+                ),
+                shape = RoundedCornerShape(50)
+            ) {
+                Text(
+                    text = "Ir al más cercano",
+                    fontFamily = FontFamily.SansSerif,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            if (estado is UbicacionUi.Lista) {
+                masCercano?.let { lugar ->
+
+                    val metros = lugares.firstOrNull {
+                        it.lugar.id == lugar.id
+                    }?.metros
+
+                    if (metros != null) {
+                        Text(
+                            text = "Más cercano: ${lugar.nombre} " +
+                                    "(${formatearDistancia(metros)})",
+                            fontFamily = FontFamily.SansSerif,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(
+                                horizontal = 8.dp
+                            )
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -201,7 +265,8 @@ fun PantallaMapa(vm: MapaViewModel) {
                         )
                     }
 
-                    if (actual.mensaje.contains(
+                    if (
+                        actual.mensaje.contains(
                             "permiso",
                             ignoreCase = true
                         )
@@ -241,6 +306,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 ListaLugares(
                     lugares = lugares,
                     seleccionado = seleccionado,
+                    idMasCercano = masCercano?.id,
                     onClick = { id ->
                         vm.seleccionar(id)
                     },

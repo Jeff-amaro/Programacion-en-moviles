@@ -3,6 +3,7 @@ package com.amaro.campusGPS.ui
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.amaro.campusGPS.model.Lugar
 import com.amaro.campusGPS.model.LugarConDistancia
 import com.amaro.campusGPS.model.UbicacionUi
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -22,6 +23,7 @@ fun MapaUbicacion(
     estado: UbicacionUi,
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
+    masCercano: Lugar?,
     modifier: Modifier = Modifier
 ) {
     val camara = rememberCameraPositionState {
@@ -148,9 +150,15 @@ fun MapaUbicacion(
                     ),
                     title = item.lugar.nombre,
                     snippet = item.lugar.categoria,
+
                     icon = BitmapDescriptorFactory.defaultMarker(
-                        BitmapDescriptorFactory.HUE_AZURE
+                        if (item.lugar.id == masCercano?.id) {
+                            BitmapDescriptorFactory.HUE_GREEN
+                        } else {
+                            BitmapDescriptorFactory.HUE_AZURE
+                        }
                     )
+
                 )
             }
         }

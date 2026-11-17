@@ -1,3 +1,4 @@
+
 package com.amaro.campusGPS.ui
 
 import androidx.compose.foundation.BorderStroke
@@ -23,6 +24,7 @@ import com.amaro.campusGPS.util.formatearDistancia
 fun ListaLugares(
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
+    idMasCercano: Int?,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -30,7 +32,7 @@ fun ListaLugares(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         items(
             items = lugares,
@@ -43,7 +45,7 @@ fun ListaLugares(
             Surface(
                 onClick = { onClick(lugar.id) },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(7.dp),
+                shape = RoundedCornerShape(9.dp),
                 color = if (estaSeleccionado) {
                     Color(0xFFE2F1FB)
                 } else {
@@ -62,17 +64,21 @@ fun ListaLugares(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            horizontal = 9.dp,
-                            vertical = 5.dp
+                            horizontal = 12.dp,
+                            vertical = 9.dp
                         ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(9.dp)
                             .background(
-                                Color(0xFF2196F3),
+                                if (lugar.id == idMasCercano) {
+                                    Color(0xFF2E9B45)
+                                } else {
+                                    Color(0xFF2196F3)
+                                },
                                 CircleShape
                             )
                     )
@@ -84,18 +90,18 @@ fun ListaLugares(
                     ) {
                         Text(
                             text = lugar.nombre,
-                            fontSize = 12.sp,
+                            fontSize = 14.sp,
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
-                            lineHeight = 14.sp
+                            lineHeight = 17.sp
                         )
 
                         Text(
                             text = lugar.categoria,
-                            fontSize = 10.sp,
+                            fontSize = 11.sp,
                             fontFamily = FontFamily.SansSerif,
                             color = Color.Gray,
-                            lineHeight = 12.sp
+                            lineHeight = 14.sp
                         )
                     }
 
@@ -103,9 +109,9 @@ fun ListaLugares(
                         text = item.metros?.let {
                             formatearDistancia(it)
                         } ?: "Sin calcular",
-                        fontSize = 11.sp,
+                        fontSize = 13.sp,
                         fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Bold,
                         color = Color(0xFF12699C)
                     )
                 }
