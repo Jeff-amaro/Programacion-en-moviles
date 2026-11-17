@@ -13,6 +13,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -38,8 +39,6 @@ import com.amaro.campusGPS.viewmodel.MapaViewModel
 import java.util.Locale
 
 private val AzulCampus = Color(0xFF12699C)
-private val RojoSeguimiento = Color(0xFFC62828)
-private val VerdeSeguimiento = Color(0xFF238C59)
 
 private fun Context.obtenerActividad(): ComponentActivity? {
     var actual: Context = this
@@ -66,6 +65,28 @@ private fun Context.obtenerActividad(): ComponentActivity? {
 fun PantallaMapa(vm: MapaViewModel) {
 
     val contexto = LocalContext.current
+    val modoOscuro = isSystemInDarkTheme()
+    val colores = MaterialTheme.colorScheme
+
+    val colorPrincipal = colores.primary
+
+    val colorRojoSeguimiento = if (modoOscuro) {
+        Color(0xFFFF8A80)
+    } else {
+        Color(0xFFC62828)
+    }
+
+    val colorVerdeSeguimiento = if (modoOscuro) {
+        Color(0xFF85D5B2)
+    } else {
+        Color(0xFF238C59)
+    }
+
+    val colorAdvertencia = if (modoOscuro) {
+        Color(0xFFFFC77D)
+    } else {
+        Color(0xFFB45309)
+    }
 
     val esHorizontal =
         LocalConfiguration.current.orientation ==
@@ -178,6 +199,7 @@ fun PantallaMapa(vm: MapaViewModel) {
     }
 
     Scaffold(
+        containerColor = colores.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -191,7 +213,8 @@ fun PantallaMapa(vm: MapaViewModel) {
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = AzulCampus
+                    containerColor = AzulCampus,
+                    titleContentColor = Color.White
                 )
             )
         }
@@ -249,7 +272,12 @@ fun PantallaMapa(vm: MapaViewModel) {
                             !seguimientoActivo,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AzulCampus
+                        containerColor = AzulCampus,
+                        contentColor = Color.White,
+                        disabledContainerColor =
+                            colores.onSurface.copy(alpha = 0.12f),
+                        disabledContentColor =
+                            colores.onSurface.copy(alpha = 0.38f)
                     ),
                     shape = RoundedCornerShape(50)
                 ) {
@@ -271,17 +299,19 @@ fun PantallaMapa(vm: MapaViewModel) {
                     border = BorderStroke(
                         width = 2.dp,
                         color = if (seguimientoActivo) {
-                            RojoSeguimiento
+                            colorRojoSeguimiento
                         } else {
-                            AzulCampus
+                            colorPrincipal
                         }
                     ),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (seguimientoActivo) {
-                            RojoSeguimiento
+                            colorRojoSeguimiento
                         } else {
-                            AzulCampus
-                        }
+                            colorPrincipal
+                        },
+                        disabledContentColor =
+                            colores.onSurface.copy(alpha = 0.38f)
                     ),
                     shape = RoundedCornerShape(50)
                 ) {
@@ -308,7 +338,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     fontFamily = FontFamily.SansSerif,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = VerdeSeguimiento
+                    color = colorVerdeSeguimiento
                 )
             }
 
@@ -316,28 +346,29 @@ fun PantallaMapa(vm: MapaViewModel) {
 
                 Spacer(modifier = Modifier.height(6.dp))
 
+                val puedeIrAlCercano =
+                    masCercano != null &&
+                            estado is UbicacionUi.Lista
+
                 OutlinedButton(
                     onClick = {
                         masCercano?.let { lugar ->
                             vm.seleccionar(lugar.id)
                         }
                     },
-                    enabled = masCercano != null &&
-                            estado is UbicacionUi.Lista,
+                    enabled = puedeIrAlCercano,
                     border = BorderStroke(
                         width = 2.dp,
-                        color = if (
-                            masCercano != null &&
-                            estado is UbicacionUi.Lista
-                        ) {
-                            AzulCampus
+                        color = if (puedeIrAlCercano) {
+                            colorPrincipal
                         } else {
-                            Color.LightGray
+                            colores.outline.copy(alpha = 0.5f)
                         }
                     ),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = AzulCampus,
-                        disabledContentColor = Color.Gray
+                        contentColor = colorPrincipal,
+                        disabledContentColor =
+                            colores.onSurface.copy(alpha = 0.38f)
                     ),
                     shape = RoundedCornerShape(50)
                 ) {
@@ -358,7 +389,8 @@ fun PantallaMapa(vm: MapaViewModel) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp),
-                    color = Color(0xFFEAF4F9),
+                    color = colores.surfaceVariant,
+                    contentColor = colores.onSurfaceVariant,
                     shape = RoundedCornerShape(12.dp)
                 ) {
 
@@ -380,7 +412,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                                 fontFamily = FontFamily.SansSerif,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color(0xFF526775)
+                                color = colores.onSurfaceVariant
                             )
 
                             Text(
@@ -388,7 +420,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                                 fontFamily = FontFamily.SansSerif,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = AzulCampus
+                                color = colorPrincipal
                             )
                         }
 
@@ -398,7 +430,9 @@ fun PantallaMapa(vm: MapaViewModel) {
                             },
                             enabled = estado is UbicacionUi.Lista,
                             colors = ButtonDefaults.textButtonColors(
-                                contentColor = AzulCampus
+                                contentColor = colorPrincipal,
+                                disabledContentColor =
+                                    colores.onSurface.copy(alpha = 0.38f)
                             )
                         ) {
                             Text(
@@ -421,7 +455,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     fontFamily = FontFamily.SansSerif,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = AzulCampus
+                    color = colorPrincipal
                 )
 
                 Row(
@@ -445,8 +479,12 @@ fun PantallaMapa(vm: MapaViewModel) {
                                 )
                             },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFFDCEEF7),
-                                selectedLabelColor = AzulCampus
+                                containerColor = colores.surface,
+                                labelColor = colores.onSurface,
+                                selectedContainerColor =
+                                    colores.primaryContainer,
+                                selectedLabelColor =
+                                    colores.onPrimaryContainer
                             )
                         )
                     }
@@ -463,9 +501,9 @@ fun PantallaMapa(vm: MapaViewModel) {
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = if (lugaresEnRadio.isEmpty()) {
-                        Color(0xFFB45309)
+                        colorAdvertencia
                     } else {
-                        AzulCampus
+                        colorPrincipal
                     },
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(
@@ -492,6 +530,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                             fontFamily = FontFamily.SansSerif,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
+                            color = colores.onBackground,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(
                                 horizontal = 8.dp
@@ -512,6 +551,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
+                        color = colores.onBackground,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(8.dp)
                     )
@@ -520,7 +560,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 is UbicacionUi.Buscando -> {
 
                     CircularProgressIndicator(
-                        color = AzulCampus
+                        color = colorPrincipal
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -528,7 +568,8 @@ fun PantallaMapa(vm: MapaViewModel) {
                     Text(
                         text = "Buscando ubicación...",
                         fontFamily = FontFamily.SansSerif,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        color = colores.onBackground
                     )
                 }
 
@@ -543,6 +584,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
+                        color = colores.onBackground,
                         letterSpacing = 0.sp
                     )
 
@@ -555,6 +597,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
+                        color = colores.onBackground,
                         letterSpacing = 0.sp
                     )
                 }

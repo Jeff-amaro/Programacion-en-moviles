@@ -1,6 +1,7 @@
 
 package com.amaro.campusGPS.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +31,8 @@ fun MapaUbicacion(
     radioMetros: Int = 200
 ) {
 
+    val modoOscuro = isSystemInDarkTheme()
+
     val camara = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
             LatLng(-12.0464, -77.0428),
@@ -41,8 +44,49 @@ fun MapaUbicacion(
         mutableStateOf(false)
     }
 
-    val estiloMapa = remember {
-        MapStyleOptions(
+    val estiloMapa = remember(modoOscuro) {
+
+        val jsonEstilo = if (modoOscuro) {
+
+            """
+            [
+              {
+                "elementType": "labels",
+                "stylers": [{"visibility": "off"}]
+              },
+              {
+                "elementType": "geometry",
+                "stylers": [{"color": "#1B2633"}]
+              },
+              {
+                "featureType": "landscape",
+                "elementType": "geometry",
+                "stylers": [{"color": "#202D3C"}]
+              },
+              {
+                "featureType": "road",
+                "elementType": "geometry",
+                "stylers": [{"color": "#475569"}]
+              },
+              {
+                "featureType": "poi.park",
+                "elementType": "geometry",
+                "stylers": [{"color": "#244536"}]
+              },
+              {
+                "featureType": "water",
+                "elementType": "geometry",
+                "stylers": [{"color": "#162E46"}]
+              },
+              {
+                "featureType": "transit",
+                "stylers": [{"visibility": "off"}]
+              }
+            ]
+            """.trimIndent()
+
+        } else {
+
             """
             [
               {
@@ -75,7 +119,9 @@ fun MapaUbicacion(
               }
             ]
             """.trimIndent()
-        )
+        }
+
+        MapStyleOptions(jsonEstilo)
     }
 
     val posicionActual = (
@@ -159,8 +205,16 @@ fun MapaUbicacion(
                     estado.posicion.longitud
                 ),
                 radius = radioMetros.toDouble(),
-                fillColor = Color(0x3312699C),
-                strokeColor = Color(0xFF12699C),
+                fillColor = if (modoOscuro) {
+                    Color(0x442196F3)
+                } else {
+                    Color(0x3312699C)
+                },
+                strokeColor = if (modoOscuro) {
+                    Color(0xFF64B5F6)
+                } else {
+                    Color(0xFF12699C)
+                },
                 strokeWidth = 3f,
                 clickable = false
             )

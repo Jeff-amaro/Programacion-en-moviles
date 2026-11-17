@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -28,38 +29,71 @@ fun ListaLugares(
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    val modoOscuro = isSystemInDarkTheme()
+
+    val colorTexto = MaterialTheme.colorScheme.onSurface
+    val colorCategoria = MaterialTheme.colorScheme.onSurfaceVariant
+    val colorDistancia = MaterialTheme.colorScheme.primary
+
+    val fondoNormal = if (modoOscuro) {
+        Color(0xFF1C2935)
+    } else {
+        Color(0xFFF5F7F9)
+    }
+
+    val fondoSeleccionado = if (modoOscuro) {
+        Color(0xFF173B52)
+    } else {
+        Color(0xFFE2F1FB)
+    }
+
+    val bordeNormal = if (modoOscuro) {
+        Color(0xFF405363)
+    } else {
+        Color(0xFFE0E5E9)
+    }
+
+    val bordeSeleccionado = MaterialTheme.colorScheme.primary
+
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
+
         items(
             items = lugares,
             key = { it.lugar.id }
         ) { item ->
 
             val lugar = item.lugar
+
             val estaSeleccionado = seleccionado == lugar.id
 
             Surface(
-                onClick = { onClick(lugar.id) },
+                onClick = {
+                    onClick(lugar.id)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(9.dp),
                 color = if (estaSeleccionado) {
-                    Color(0xFFE2F1FB)
+                    fondoSeleccionado
                 } else {
-                    Color(0xFFF5F7F9)
+                    fondoNormal
                 },
+                contentColor = colorTexto,
                 border = BorderStroke(
                     width = 1.dp,
                     color = if (estaSeleccionado) {
-                        Color(0xFF12699C)
+                        bordeSeleccionado
                     } else {
-                        Color(0xFFE0E5E9)
+                        bordeNormal
                     }
                 )
             ) {
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -74,33 +108,37 @@ fun ListaLugares(
                         modifier = Modifier
                             .size(9.dp)
                             .background(
-                                if (lugar.id == idMasCercano) {
+                                color = if (lugar.id == idMasCercano) {
                                     Color(0xFF2E9B45)
                                 } else {
                                     Color(0xFF2196F3)
                                 },
-                                CircleShape
+                                shape = CircleShape
                             )
                     )
 
-                    Spacer(modifier = Modifier.width(9.dp))
+                    Spacer(
+                        modifier = Modifier.width(9.dp)
+                    )
 
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
+
                         Text(
                             text = lugar.nombre,
                             fontSize = 14.sp,
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
-                            lineHeight = 17.sp
+                            lineHeight = 17.sp,
+                            color = colorTexto
                         )
 
                         Text(
                             text = lugar.categoria,
                             fontSize = 11.sp,
                             fontFamily = FontFamily.SansSerif,
-                            color = Color.Gray,
+                            color = colorCategoria,
                             lineHeight = 14.sp
                         )
                     }
@@ -112,7 +150,7 @@ fun ListaLugares(
                         fontSize = 13.sp,
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF12699C)
+                        color = colorDistancia
                     )
                 }
             }
