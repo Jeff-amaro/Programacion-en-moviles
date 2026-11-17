@@ -49,6 +49,9 @@ fun PantallaMapa(vm: MapaViewModel) {
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
 
+    val radioMetros by vm.radioMetros.collectAsState()
+    val lugaresEnRadio by vm.lugaresEnRadio.collectAsState()
+
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { resultado ->
@@ -124,6 +127,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     lugares = lugares,
                     seleccionado = seleccionado,
                     masCercano = masCercano,
+                    radioMetros = radioMetros,
                     modifier = if (esHorizontal) {
                         Modifier
                             .fillMaxWidth()
@@ -191,6 +195,67 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
+
+            if (estado is UbicacionUi.Lista) {
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "Radio de búsqueda",
+                    fontFamily = FontFamily.SansSerif,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulCampus
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    listOf(100, 200, 500).forEach { metros ->
+
+                        FilterChip(
+                            selected = radioMetros == metros,
+                            onClick = {
+                                vm.cambiarRadio(metros)
+                            },
+                            label = {
+                                Text(
+                                    text = "$metros m",
+                                    fontFamily = FontFamily.SansSerif,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFFDCEEF7),
+                                selectedLabelColor = AzulCampus
+                            )
+                        )
+                    }
+                }
+
+                Text(
+                    text = if (lugaresEnRadio.isEmpty()) {
+                        "No hay lugares dentro de $radioMetros m"
+                    } else {
+                        "${lugaresEnRadio.size} de ${lugares.size} " +
+                                "lugares dentro de $radioMetros m"
+                    },
+                    fontFamily = FontFamily.SansSerif,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (lugaresEnRadio.isEmpty()) {
+                        Color(0xFFB45309)
+                    } else {
+                        AzulCampus
+                    },
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(
+                        horizontal = 8.dp
+                    )
+                )
             }
 
             Spacer(modifier = Modifier.height(4.dp))
