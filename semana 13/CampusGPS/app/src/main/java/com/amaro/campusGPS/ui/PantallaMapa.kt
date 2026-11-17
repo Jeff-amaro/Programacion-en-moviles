@@ -1,4 +1,3 @@
-
 package com.amaro.campusGPS.ui
 
 import android.Manifest
@@ -14,6 +13,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -67,33 +68,16 @@ fun PantallaMapa(vm: MapaViewModel) {
     val contexto = LocalContext.current
     val modoOscuro = isSystemInDarkTheme()
     val colores = MaterialTheme.colorScheme
-
     val colorPrincipal = colores.primary
-
-    val colorRojoSeguimiento = if (modoOscuro) {
-        Color(0xFFFF8A80)
-    } else {
-        Color(0xFFC62828)
-    }
-
-    val colorVerdeSeguimiento = if (modoOscuro) {
-        Color(0xFF85D5B2)
-    } else {
-        Color(0xFF238C59)
-    }
-
-    val colorAdvertencia = if (modoOscuro) {
-        Color(0xFFFFC77D)
-    } else {
-        Color(0xFFB45309)
-    }
+    val colorRojoSeguimiento = if (modoOscuro) Color(0xFFFF8A80) else Color(0xFFC62828)
+    val colorVerdeSeguimiento = if (modoOscuro) Color(0xFF85D5B2) else Color(0xFF238C59)
+    val colorAdvertencia = if (modoOscuro) Color(0xFFFFC77D) else Color(0xFFB45309)
 
     val esHorizontal =
         LocalConfiguration.current.orientation ==
                 Configuration.ORIENTATION_LANDSCAPE
 
     val estado by vm.estado.collectAsState()
-    val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
 
@@ -102,6 +86,9 @@ fun PantallaMapa(vm: MapaViewModel) {
 
     val ultimoLugar by vm.ultimoLugar.collectAsState()
     val seguimientoActivo by vm.seguimientoActivo.collectAsState()
+
+    val categoriaSeleccionada by vm.categoriaSeleccionada.collectAsState()
+    val lugaresVisibles by vm.lugaresVisibles.collectAsState()
 
     val actividad = remember(contexto) {
         contexto.obtenerActividad()
@@ -240,7 +227,7 @@ fun PantallaMapa(vm: MapaViewModel) {
 
                 MapaUbicacion(
                     estado = estado,
-                    lugares = lugares,
+                    lugares = lugaresVisibles,
                     seleccionado = seleccionado,
                     masCercano = masCercano,
                     radioMetros = radioMetros,
@@ -274,10 +261,8 @@ fun PantallaMapa(vm: MapaViewModel) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = AzulCampus,
                         contentColor = Color.White,
-                        disabledContainerColor =
-                            colores.onSurface.copy(alpha = 0.12f),
-                        disabledContentColor =
-                            colores.onSurface.copy(alpha = 0.38f)
+                        disabledContainerColor = colores.onSurface.copy(alpha = 0.12f),
+                        disabledContentColor = colores.onSurface.copy(alpha = 0.38f)
                     ),
                     shape = RoundedCornerShape(50)
                 ) {
@@ -309,9 +294,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                             colorRojoSeguimiento
                         } else {
                             colorPrincipal
-                        },
-                        disabledContentColor =
-                            colores.onSurface.copy(alpha = 0.38f)
+                        }
                     ),
                     shape = RoundedCornerShape(50)
                 ) {
@@ -346,20 +329,20 @@ fun PantallaMapa(vm: MapaViewModel) {
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                val puedeIrAlCercano =
-                    masCercano != null &&
-                            estado is UbicacionUi.Lista
-
                 OutlinedButton(
                     onClick = {
                         masCercano?.let { lugar ->
                             vm.seleccionar(lugar.id)
                         }
                     },
-                    enabled = puedeIrAlCercano,
+                    enabled = masCercano != null &&
+                            estado is UbicacionUi.Lista,
                     border = BorderStroke(
                         width = 2.dp,
-                        color = if (puedeIrAlCercano) {
+                        color = if (
+                            masCercano != null &&
+                            estado is UbicacionUi.Lista
+                        ) {
                             colorPrincipal
                         } else {
                             colores.outline.copy(alpha = 0.5f)
@@ -367,8 +350,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     ),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = colorPrincipal,
-                        disabledContentColor =
-                            colores.onSurface.copy(alpha = 0.38f)
+                        disabledContentColor = colores.onSurface.copy(alpha = 0.38f)
                     ),
                     shape = RoundedCornerShape(50)
                 ) {
@@ -378,6 +360,59 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
+                }
+            }
+
+            if (estado !is UbicacionUi.Error) {
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Categoría:",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorPrincipal
+                    )
+
+                    LazyRow(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        item(key = "todas") {
+                            FilterChip(
+                                selected = categoriaSeleccionada == null,
+                                onClick = { vm.seleccionarCategoria(null) },
+                                label = { Text("Todas", fontSize = 12.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = colores.surface,
+                                    labelColor = colores.onSurface,
+                                    selectedContainerColor = colores.primaryContainer,
+                                    selectedLabelColor = colores.onPrimaryContainer
+                                )
+                            )
+                        }
+
+                        items(vm.categorias, key = { it }) { categoria ->
+                            FilterChip(
+                                selected = categoriaSeleccionada == categoria,
+                                onClick = { vm.seleccionarCategoria(categoria) },
+                                label = { Text(categoria, fontSize = 12.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = colores.surface,
+                                    labelColor = colores.onSurface,
+                                    selectedContainerColor = colores.primaryContainer,
+                                    selectedLabelColor = colores.onPrimaryContainer
+                                )
+                            )
+                        }
+                    }
                 }
             }
 
@@ -430,9 +465,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                             },
                             enabled = estado is UbicacionUi.Lista,
                             colors = ButtonDefaults.textButtonColors(
-                                contentColor = colorPrincipal,
-                                disabledContentColor =
-                                    colores.onSurface.copy(alpha = 0.38f)
+                                contentColor = colorPrincipal
                             )
                         ) {
                             Text(
@@ -481,10 +514,8 @@ fun PantallaMapa(vm: MapaViewModel) {
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = colores.surface,
                                 labelColor = colores.onSurface,
-                                selectedContainerColor =
-                                    colores.primaryContainer,
-                                selectedLabelColor =
-                                    colores.onPrimaryContainer
+                                selectedContainerColor = colores.primaryContainer,
+                                selectedLabelColor = colores.onPrimaryContainer
                             )
                         )
                     }
@@ -494,7 +525,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     text = if (lugaresEnRadio.isEmpty()) {
                         "No hay lugares dentro de $radioMetros m"
                     } else {
-                        "${lugaresEnRadio.size} de ${lugares.size} " +
+                        "${lugaresEnRadio.size} de ${lugaresVisibles.size} " +
                                 "lugares dentro de $radioMetros m"
                     },
                     fontFamily = FontFamily.SansSerif,
@@ -518,7 +549,7 @@ fun PantallaMapa(vm: MapaViewModel) {
 
                 masCercano?.let { lugar ->
 
-                    val metros = lugares.firstOrNull {
+                    val metros = lugaresVisibles.firstOrNull {
                         it.lugar.id == lugar.id
                     }?.metros
 
@@ -530,7 +561,6 @@ fun PantallaMapa(vm: MapaViewModel) {
                             fontFamily = FontFamily.SansSerif,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = colores.onBackground,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(
                                 horizontal = 8.dp
@@ -551,7 +581,6 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
-                        color = colores.onBackground,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(8.dp)
                     )
@@ -568,8 +597,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     Text(
                         text = "Buscando ubicación...",
                         fontFamily = FontFamily.SansSerif,
-                        fontSize = 14.sp,
-                        color = colores.onBackground
+                        fontSize = 14.sp
                     )
                 }
 
@@ -584,7 +612,6 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
-                        color = colores.onBackground,
                         letterSpacing = 0.sp
                     )
 
@@ -597,7 +624,6 @@ fun PantallaMapa(vm: MapaViewModel) {
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
-                        color = colores.onBackground,
                         letterSpacing = 0.sp
                     )
                 }
@@ -629,13 +655,13 @@ fun PantallaMapa(vm: MapaViewModel) {
             if (estado !is UbicacionUi.Error) {
 
                 ListaLugares(
-                    lugares = lugares,
+                    lugares = lugaresVisibles,
                     seleccionado = seleccionado,
                     idMasCercano = masCercano?.id,
                     onClick = { id ->
                         vm.seleccionar(id)
                     },
-                    modifier = Modifier.height(220.dp)
+                    modifier = Modifier.height(180.dp)
                 )
 
             } else {

@@ -1,4 +1,3 @@
-
 package com.amaro.campusGPS.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -32,32 +32,40 @@ class MapaViewModel(
     private val ultimoLugarRepo: UltimoLugarRepository
 ) : ViewModel() {
 
-    private val _estado =
-        MutableStateFlow<UbicacionUi>(UbicacionUi.Inicial)
-
-    val estado: StateFlow<UbicacionUi> =
-        _estado.asStateFlow()
+    private val _estado = MutableStateFlow<UbicacionUi>(UbicacionUi.Inicial)
+    val estado: StateFlow<UbicacionUi> = _estado.asStateFlow()
 
     private val _lugares = MutableStateFlow(
-        lugaresRepo.obtenerLugares().map {
-            LugarConDistancia(it, null)
-        }
+        lugaresRepo.obtenerLugares().map { LugarConDistancia(it, null) }
+    )
+    val lugares: StateFlow<List<LugarConDistancia>> = _lugares.asStateFlow()
+
+    private val _seleccionado = MutableStateFlow<Int?>(null)
+    val seleccionado: StateFlow<Int?> = _seleccionado.asStateFlow()
+
+    val categorias: List<String> = lugaresRepo.obtenerLugares()
+        .map { it.categoria }
+        .distinct()
+        .sorted()
+
+    private val _categoriaSeleccionada = MutableStateFlow<String?>(null)
+    val categoriaSeleccionada: StateFlow<String?> = _categoriaSeleccionada.asStateFlow()
+
+    val lugaresVisibles: StateFlow<List<LugarConDistancia>> = combine(
+        lugares,
+        categoriaSeleccionada
+    ) { lista, categoria ->
+        if (categoria == null) lista
+        else lista.filter { it.lugar.categoria == categoria }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        _lugares.value
     )
 
-    val lugares: StateFlow<List<LugarConDistancia>> =
-        _lugares.asStateFlow()
-
-    private val _seleccionado =
-        MutableStateFlow<Int?>(null)
-
-    val seleccionado: StateFlow<Int?> =
-        _seleccionado.asStateFlow()
-
-    val masCercano: StateFlow<Lugar?> = lugares
+    val masCercano: StateFlow<Lugar?> = lugaresVisibles
         .map { lista ->
-            lista.firstOrNull {
-                it.metros != null
-            }?.lugar
+            lista.firstOrNull { it.metros != null }?.lugar
         }
         .stateIn(
             viewModelScope,
@@ -66,53 +74,46 @@ class MapaViewModel(
         )
 
     private val _radioMetros = MutableStateFlow(200)
+    val radioMetros: StateFlow<Int> = _radioMetros.asStateFlow()
 
-    val radioMetros: StateFlow<Int> =
-        _radioMetros.asStateFlow()
-
-    val lugaresEnRadio: StateFlow<List<LugarConDistancia>> =
-        combine(
-            lugares,
-            radioMetros,
-            estado
-        ) { lista, radio, estadoActual ->
-
-            if (estadoActual is UbicacionUi.Lista) {
-                lista.filter { lugar ->
-                    lugar.metros?.let { distancia ->
-                        distancia <= radio.toFloat()
-                    } ?: false
-                }
-            } else {
-                emptyList()
+    val lugaresEnRadio: StateFlow<List<LugarConDistancia>> = combine(
+        lugaresVisibles,
+        radioMetros,
+        estado
+    ) { lista, radio, estadoActual ->
+        if (estadoActual is UbicacionUi.Lista) {
+            lista.filter { item ->
+                item.metros?.let { distancia -> distancia <= radio.toFloat() } ?: false
             }
-
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
+        } else {
             emptyList()
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
+    )
+
+    val ultimoLugar: StateFlow<Lugar?> = ultimoLugarRepo.ultimoLugarId
+        .map { id ->
+            lugaresRepo.obtenerLugares().firstOrNull { it.id == id }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            null
         )
 
-    val ultimoLugar: StateFlow<Lugar?> =
-        ultimoLugarRepo.ultimoLugarId
-            .map { id ->
-                lugaresRepo.obtenerLugares()
-                    .firstOrNull { lugar ->
-                        lugar.id == id
-                    }
-            }
-            .stateIn(
-                viewModelScope,
-                SharingStarted.Eagerly,
-                null
-            )
-
     private val _seguimientoActivo = MutableStateFlow(false)
-
-    val seguimientoActivo: StateFlow<Boolean> =
-        _seguimientoActivo.asStateFlow()
-
+    val seguimientoActivo: StateFlow<Boolean> = _seguimientoActivo.asStateFlow()
     private var seguimientoJob: Job? = null
+
+    fun seleccionarCategoria(categoria: String?) {
+        if (categoria != null && categoria !in categorias) return
+        if (_categoriaSeleccionada.value == categoria) return
+        _categoriaSeleccionada.value = categoria
+        _seleccionado.value = null
+    }
 
     fun cambiarRadio(metros: Int) {
         if (metros in listOf(100, 200, 500)) {
@@ -121,9 +122,7 @@ class MapaViewModel(
     }
 
     fun buscar() {
-
         detenerSeguimiento()
-
         _seleccionado.value = null
 
         if (!ubicacionRepo.playServicesDisponible()) {
@@ -142,17 +141,12 @@ class MapaViewModel(
                     actualizarDistancias(posicion)
                     _estado.value = UbicacionUi.Lista(posicion)
                 }
-                .onFailure { error ->
-                    mostrarError(error)
-                }
+                .onFailure { error -> mostrarError(error) }
         }
     }
 
     fun iniciarSeguimiento() {
-
-        if (_seguimientoActivo.value) {
-            return
-        }
+        if (_seguimientoActivo.value) return
 
         if (!ubicacionRepo.playServicesDisponible()) {
             _estado.value = UbicacionUi.Error(
@@ -163,37 +157,22 @@ class MapaViewModel(
         }
 
         _seleccionado.value = null
-
         if (_estado.value !is UbicacionUi.Lista) {
             _estado.value = UbicacionUi.Buscando
         }
-
         _seguimientoActivo.value = true
 
         seguimientoJob = viewModelScope.launch {
-
             try {
-
-                ubicacionRepo.observarUbicacion()
-                    .collect { posicion ->
-
-                        actualizarDistancias(posicion)
-
-                        _estado.value = UbicacionUi.Lista(
-                            posicion
-                        )
-                    }
-
+                ubicacionRepo.observarUbicacion().collect { posicion ->
+                    actualizarDistancias(posicion)
+                    _estado.value = UbicacionUi.Lista(posicion)
+                }
             } catch (error: CancellationException) {
-
                 throw error
-
             } catch (error: Exception) {
-
                 mostrarError(error)
-
             } finally {
-
                 if (seguimientoJob === coroutineContext[Job]) {
                     seguimientoJob = null
                     _seguimientoActivo.value = false
@@ -203,20 +182,16 @@ class MapaViewModel(
     }
 
     fun detenerSeguimiento() {
-
         seguimientoJob?.cancel()
         seguimientoJob = null
-
         _seguimientoActivo.value = false
-
         if (_estado.value is UbicacionUi.Buscando) {
             _estado.value = UbicacionUi.Inicial
         }
     }
 
     private fun actualizarDistancias(pos: Posicion) {
-
-        val listaOrdenada = lugaresRepo.obtenerLugares()
+        _lugares.value = lugaresRepo.obtenerLugares()
             .map { lugar ->
                 LugarConDistancia(
                     lugar = lugar,
@@ -224,47 +199,31 @@ class MapaViewModel(
                 )
             }
             .sortedBy { it.metros }
-
-        _lugares.value = listaOrdenada
     }
 
     private fun mostrarError(error: Throwable) {
-
         val tipo = when (error) {
-            is SecurityException ->
-                TipoError.SIN_PERMISO
-
-            is UbicacionNoDisponibleException ->
-                TipoError.GPS_APAGADO
-
-            else ->
-                TipoError.OTRO
+            is SecurityException -> TipoError.SIN_PERMISO
+            is UbicacionNoDisponibleException -> TipoError.GPS_APAGADO
+            else -> TipoError.OTRO
         }
 
         val mensaje = when (tipo) {
             TipoError.SIN_PERMISO ->
                 "Sin permiso de ubicación no puedo mostrar dónde estás"
-
             TipoError.GPS_APAGADO ->
                 "No se pudo obtener la ubicación.\nActiva el GPS e intenta de nuevo"
-
             TipoError.SIN_PLAY_SERVICES ->
                 "Este dispositivo no tiene Google Play Services"
-
             TipoError.OTRO ->
                 error.message ?: "No se pudo obtener la ubicación"
         }
 
-        _estado.value = UbicacionUi.Error(
-            mensaje = mensaje,
-            tipo = tipo
-        )
+        _estado.value = UbicacionUi.Error(mensaje = mensaje, tipo = tipo)
     }
 
     fun permisoDenegado() {
-
         detenerSeguimiento()
-
         _estado.value = UbicacionUi.Error(
             mensaje = "Sin permiso de ubicación no puedo mostrar dónde estás",
             tipo = TipoError.SIN_PERMISO
@@ -272,19 +231,22 @@ class MapaViewModel(
     }
 
     fun seleccionar(id: Int?) {
-
         _seleccionado.value = id
-
         if (id != null) {
-            viewModelScope.launch {
-                ultimoLugarRepo.guardarUltimoLugar(id)
-            }
+            viewModelScope.launch { ultimoLugarRepo.guardarUltimoLugar(id) }
         }
     }
 
     fun irAlUltimoLugar() {
         if (_estado.value is UbicacionUi.Lista) {
-            _seleccionado.value = ultimoLugar.value?.id
+            val id = ultimoLugar.value?.id ?: return
+            viewModelScope.launch {
+                _categoriaSeleccionada.value = null
+                lugaresVisibles.first { lista ->
+                    lista.any { it.lugar.id == id }
+                }
+                _seleccionado.value = id
+            }
         }
     }
 }
