@@ -16,11 +16,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.amaro.campusGPS.model.UbicacionUi
 import com.amaro.campusGPS.viewmodel.MapaViewModel
+import java.util.Locale
 
 private val AzulCampus = Color(0xFF12699C)
 
@@ -30,11 +34,12 @@ fun PantallaMapa(vm: MapaViewModel) {
 
     val contexto = LocalContext.current
     val estado by vm.estado.collectAsState()
+    val lugares by vm.lugares.collectAsState()
+    val seleccionado by vm.seleccionado.collectAsState()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { resultado ->
-
         if (resultado.values.any { it }) {
             vm.buscar()
         } else {
@@ -43,7 +48,6 @@ fun PantallaMapa(vm: MapaViewModel) {
     }
 
     val alPulsar: () -> Unit = {
-
         val permisoFino = ContextCompat.checkSelfPermission(
             contexto,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -72,7 +76,11 @@ fun PantallaMapa(vm: MapaViewModel) {
                 title = {
                     Text(
                         text = "CampusGPS",
-                        color = Color.White
+                        color = Color.White,
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.sp
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -85,31 +93,52 @@ fun PantallaMapa(vm: MapaViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (estado is UbicacionUi.Lista) {
+                MapaUbicacion(
+                    estado = estado,
+                    lugares = lugares,
+                    seleccionado = seleccionado,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = alPulsar,
                 enabled = estado !is UbicacionUi.Buscando,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AzulCampus
-                )
+                ),
+                shape = RoundedCornerShape(50)
             ) {
-                Text("Obtener mi ubicación")
+                Text(
+                    text = "Obtener mi ubicación",
+                    fontFamily = FontFamily.SansSerif,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.sp
+                )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             when (val actual = estado) {
 
                 is UbicacionUi.Inicial -> {
                     Text(
                         text = "Presiona el botón para obtener tu ubicación",
-                        textAlign = TextAlign.Center
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
 
@@ -120,24 +149,44 @@ fun PantallaMapa(vm: MapaViewModel) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text("Buscando ubicación...")
+                    Text(
+                        text = "Buscando ubicación...",
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 14.sp
+                    )
                 }
 
                 is UbicacionUi.Lista -> {
                     Text(
-                        text = "Latitud: ${actual.posicion.latitud}",
-                        style = MaterialTheme.typography.bodySmall
+                        text = String.format(
+                            Locale.US,
+                            "Latitud: %.4f",
+                            actual.posicion.latitud
+                        ),
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 0.sp
                     )
 
                     Text(
-                        text = "Longitud: ${actual.posicion.longitud}",
-                        style = MaterialTheme.typography.bodySmall
+                        text = String.format(
+                            Locale.US,
+                            "Longitud: %.4f",
+                            actual.posicion.longitud
+                        ),
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 0.sp
                     )
                 }
 
                 is UbicacionUi.Error -> {
-
                     Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
                         color = MaterialTheme.colorScheme.errorContainer,
                         shape = RoundedCornerShape(8.dp)
                     ) {
@@ -145,6 +194,9 @@ fun PantallaMapa(vm: MapaViewModel) {
                             text = actual.mensaje,
                             modifier = Modifier.padding(16.dp),
                             color = MaterialTheme.colorScheme.onErrorContainer,
+                            fontFamily = FontFamily.SansSerif,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -154,7 +206,6 @@ fun PantallaMapa(vm: MapaViewModel) {
                             ignoreCase = true
                         )
                     ) {
-
                         Spacer(modifier = Modifier.height(12.dp))
 
                         OutlinedButton(
@@ -174,12 +225,21 @@ fun PantallaMapa(vm: MapaViewModel) {
                         ) {
                             Text(
                                 text = "Abrir ajustes",
-                                color = AzulCampus
+                                color = AzulCampus,
+                                fontFamily = FontFamily.SansSerif,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
                             )
                         }
                     }
                 }
             }
+
+            Spacer(
+                modifier = Modifier.weight(0.75f)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
