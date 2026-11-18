@@ -25,6 +25,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
     val corriendo by viewModel.corriendo.collectAsState()
     val primos by viewModel.primos.collectAsState()
     val carga by viewModel.carga.collectAsState()
+    val simularError by viewModel.simularError.collectAsState()
 
     var toques by rememberSaveable {
         mutableIntStateOf(0)
@@ -186,7 +187,6 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         PrimosUi.Calculando ->
                             CircularProgressIndicator()
 
-
                         is PrimosUi.Listo ->
                             Surface(
                                 color = Color(0xFFE6F4EA),
@@ -199,7 +199,6 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                                     color = Color(0xFF1B5E20)
                                 )
                             }
-
 
                         PrimosUi.Cancelado ->
                             Text("Cancelado")
@@ -223,7 +222,6 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-
 
                     Row(
                         horizontalArrangement =
@@ -249,7 +247,6 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         }
                     }
 
-
                     Row(
                         horizontalArrangement =
                             Arrangement.spacedBy(12.dp)
@@ -257,9 +254,10 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         Text("Simular error")
 
                         Switch(
-                            checked = false,
-                            onCheckedChange = null,
-                            enabled = false
+                            checked = simularError,
+                            onCheckedChange = {
+                                viewModel.cambiarSimularError(it)
+                            }
                         )
                     }
 
@@ -278,11 +276,33 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                                         "Tiempo: ${estado.milisegundos} ms"
                             )
 
-                        is CargaUi.Error ->
-                            Text("Error: ${estado.mensaje}")
-                    }
+                        is CargaUi.Error -> {
+                            Surface(
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement =
+                                        Arrangement.spacedBy(8.dp)
+                                ) {
 
-                    // TODO Paso 7: botón Reintentar
+                                    Text(
+                                        text = estado.mensaje,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+
+                                    Button(
+                                        onClick = {
+                                            viewModel.cargarALaVez()
+                                        }
+                                    ) {
+                                        Text("Reintentar")
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
