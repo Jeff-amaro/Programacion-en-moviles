@@ -21,6 +21,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
     val mensaje by viewModel.mensaje.collectAsState()
     val progreso by viewModel.progreso.collectAsState()
+    val corriendo by viewModel.corriendo.collectAsState()
     val primos by viewModel.primos.collectAsState()
     val carga by viewModel.carga.collectAsState()
 
@@ -80,17 +81,34 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         Text("Tócame: $toques")
                     }
 
-                    Button(
-                        onClick = {
-                            viewModel.tareaLarga()
-                        }
+                    Row(
+                        horizontalArrangement =
+                            Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Iniciar")
+
+                        Button(
+                            onClick = {
+                                viewModel.tareaLarga()
+                            },
+                            enabled = !corriendo
+                        ) {
+                            Text("Iniciar")
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.cancelar()
+                            },
+                            enabled = corriendo
+                        ) {
+                            Text("Cancelar")
+                        }
                     }
 
                     Text(mensaje)
 
                     // PASO 3: Barra de progreso
+
                     LinearProgressIndicator(
                         progress = { progreso },
                         modifier = Modifier.fillMaxWidth()
@@ -99,7 +117,6 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                     Text(
                         text = "${(progreso * 100).toInt()} %"
                     )
-                    // TODO Paso 4: botón Cancelar
                 }
             }
 
