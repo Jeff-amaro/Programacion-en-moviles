@@ -12,6 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import java.text.DateFormat
+import java.util.Date
 import com.amaro.centrotareas.model.CargaUi
 import com.amaro.centrotareas.model.PrimosUi
 import com.amaro.centrotareas.viewmodel.TareasViewModel
@@ -27,6 +30,17 @@ fun PantallaTareas(viewModel: TareasViewModel) {
     val progresoPrimos by viewModel.progresoPrimos.collectAsState()
     val carga by viewModel.carga.collectAsState()
     val simularError by viewModel.simularError.collectAsState()
+
+    // MEJORA 5: Historial de resultados
+    val historial by viewModel.historial.collectAsState()
+
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.iniciarHistorial(
+            context.applicationContext
+        )
+    }
 
     val limiteDosSegundos by
     viewModel.limiteDosSegundos.collectAsState()
@@ -71,6 +85,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
+
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement =
@@ -86,6 +101,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                     Button(
                         onClick = { toques++ }
                     ) {
+
                         Text("Tócame: $toques")
                     }
 
@@ -100,6 +116,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             },
                             enabled = !corriendo
                         ) {
+
                             Text("Iniciar")
                         }
 
@@ -109,6 +126,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             },
                             enabled = corriendo
                         ) {
+
                             Text("Cancelar")
                         }
                     }
@@ -133,6 +151,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
+
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement =
@@ -147,7 +166,9 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                     OutlinedTextField(
                         value = hasta,
-                        onValueChange = { hasta = it },
+                        onValueChange = {
+                            hasta = it
+                        },
                         label = {
                             Text("Hasta qué número")
                         },
@@ -165,7 +186,9 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                         Button(
                             onClick = {
+
                                 numero?.takeIf { it >= 2 }?.let {
+
                                     viewModel.contar(it)
                                 }
                             },
@@ -173,6 +196,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                                     numero >= 2 &&
                                     primos != PrimosUi.Calculando
                         ) {
+
                             Text("Contar")
                         }
 
@@ -182,6 +206,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             },
                             enabled = primos == PrimosUi.Calculando
                         ) {
+
                             Text("Cancelar")
                         }
                     }
@@ -191,27 +216,29 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         PrimosUi.Inicial ->
                             Text("Esperando cálculo")
 
-
                         PrimosUi.Calculando ->
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                verticalArrangement =
+                                    Arrangement.spacedBy(8.dp)
                             ) {
+
                                 LinearProgressIndicator(
                                     progress = { progresoPrimos },
                                     modifier = Modifier.fillMaxWidth()
                                 )
 
                                 Text(
-                                    "Calculando: ${(progresoPrimos * 100).toInt()} %"
+                                    "Calculando: " +
+                                            "${(progresoPrimos * 100).toInt()} %"
                                 )
                             }
-
 
                         is PrimosUi.Listo ->
                             Surface(
                                 color = Color(0xFFE6F4EA),
                                 shape = MaterialTheme.shapes.medium
                             ) {
+
                                 Text(
                                     text = "Primos: ${estado.cantidad}\n" +
                                             "Tiempo: ${estado.milisegundos} ms",
@@ -231,6 +258,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
+
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement =
@@ -254,6 +282,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             },
                             enabled = carga != CargaUi.Cargando
                         ) {
+
                             Text("Una por una")
                         }
 
@@ -263,6 +292,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             },
                             enabled = carga != CargaUi.Cargando
                         ) {
+
                             Text("A la vez")
                         }
                     }
@@ -317,10 +347,14 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             )
 
                         is CargaUi.Error -> {
+
                             Surface(
-                                color = MaterialTheme.colorScheme.errorContainer,
-                                shape = MaterialTheme.shapes.medium
+                                color =
+                                    MaterialTheme.colorScheme.errorContainer,
+                                shape =
+                                    MaterialTheme.shapes.medium
                             ) {
+
                                 Column(
                                     modifier = Modifier.padding(12.dp),
                                     verticalArrangement =
@@ -329,7 +363,8 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                                     Text(
                                         text = estado.mensaje,
-                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                        color =
+                                            MaterialTheme.colorScheme.onErrorContainer
                                     )
 
                                     Button(
@@ -337,10 +372,71 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                                             viewModel.cargarALaVez()
                                         }
                                     ) {
+
                                         Text("Reintentar")
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            }
+
+            // TARJETA 4: HISTORIAL DE RESULTADOS
+
+            // MEJORA 5: Guardar los últimos 5 resultados
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(10.dp)
+                ) {
+
+                    Text(
+                        "Historial de resultados",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    if (historial.isEmpty()) {
+
+                        Text(
+                            "Todavía no hay resultados guardados"
+                        )
+
+                    } else {
+
+                        historial.forEachIndexed { indice, registro ->
+
+                            if (indice > 0) {
+
+                                HorizontalDivider()
+                            }
+
+                            Text(
+                                text = "${indice + 1}. ${registro.tipo}",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+
+                            Text(
+                                text = registro.detalle
+                            )
+
+                            Text(
+                                text = DateFormat.getDateTimeInstance(
+                                    DateFormat.SHORT,
+                                    DateFormat.SHORT
+                                ).format(
+                                    Date(registro.fechaMillis)
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color =
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }

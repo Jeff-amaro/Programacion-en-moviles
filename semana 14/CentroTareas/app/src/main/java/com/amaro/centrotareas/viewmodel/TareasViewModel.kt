@@ -1,10 +1,13 @@
 
 package com.amaro.centrotareas.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amaro.centrotareas.data.TareasRepository
+import com.amaro.centrotareas.data.HistorialRepositoryLocal
+import com.amaro.centrotareas.data.RegistroHistorial
 import com.amaro.centrotareas.model.PrimosUi
 import com.amaro.centrotareas.model.CargaUi
 import kotlinx.coroutines.Job
@@ -57,7 +60,10 @@ class TareasViewModel(
                     "Antes: ${Thread.currentThread().name}"
                 )
 
+                // MEJORA 1: Progreso desde el Repository
+
                 repo.tareaConProgreso().collect { valor ->
+
                     _progreso.value = valor
                 }
 
@@ -69,13 +75,16 @@ class TareasViewModel(
                 _mensaje.value = "Terminó"
 
             } finally {
+
                 _corriendo.value = false
             }
         }
     }
 
     fun cancelar() {
+
         if (_corriendo.value) {
+
             trabajo?.cancel()
             _mensaje.value = "Cancelado"
         }
@@ -94,6 +103,7 @@ class TareasViewModel(
     // MEJORA 4: Progreso del cálculo de primos
 
     private val _progresoPrimos = MutableStateFlow(0f)
+
     val progresoPrimos: StateFlow<Float> =
         _progresoPrimos.asStateFlow()
 
@@ -115,7 +125,8 @@ class TareasViewModel(
                 repo.contarPrimosConProgreso(hasta)
                     .collect { avance ->
 
-                        _progresoPrimos.value = avance.progreso
+                        _progresoPrimos.value =
+                            avance.progreso
 
                         avance.cantidadFinal?.let { cantidad ->
 
@@ -126,10 +137,19 @@ class TareasViewModel(
                                 cantidad,
                                 tiempo
                             )
+
+                            // MEJORA 5: Guardar resultado de primos
+
+                            registrarHistorial(
+                                tipo = "Primos",
+                                detalle = "Hasta $hasta: " +
+                                        "$cantidad primos ($tiempo ms)"
+                            )
                         }
                     }
 
             } catch (e: CancellationException) {
+
                 _primos.value = PrimosUi.Cancelado
                 throw e
             }
@@ -137,7 +157,9 @@ class TareasViewModel(
     }
 
     fun cancelarPrimos() {
+
         if (_primos.value == PrimosUi.Calculando) {
+
             trabajoPrimos?.cancel()
             _primos.value = PrimosUi.Cancelado
         }
@@ -152,10 +174,12 @@ class TareasViewModel(
         _carga.asStateFlow()
 
     private val _simularError = MutableStateFlow(false)
+
     val simularError: StateFlow<Boolean> =
         _simularError.asStateFlow()
 
     fun cambiarSimularError(valor: Boolean) {
+
         _simularError.value = valor
     }
 
@@ -168,17 +192,23 @@ class TareasViewModel(
         _limiteDosSegundos.asStateFlow()
 
     fun cambiarLimiteDosSegundos(valor: Boolean) {
+
         _limiteDosSegundos.value = valor
     }
 
     private suspend fun <T> ejecutarConLimite(
         bloque: suspend () -> T
     ): T {
+
         return if (_limiteDosSegundos.value) {
+
             withTimeout(2000L) {
+
                 bloque()
             }
+
         } else {
+
             bloque()
         }
     }
@@ -196,22 +226,28 @@ class TareasViewModel(
             try {
 
                 return ejecutarConLimite {
+
                     bloque()
                 }
 
             } catch (e: TimeoutCancellationException) {
 
+                // Respetar el límite de la Mejora 2
                 throw e
 
             } catch (e: CancellationException) {
 
+                // No reintentar si se cancela
                 throw e
 
             } catch (e: Exception) {
 
                 if (intento == maxReintentos) {
+
                     throw e
                 }
+
+                // Espera creciente: 500, 1000 y 1500 ms
 
                 delay((intento + 1) * 500L)
             }
@@ -229,6 +265,7 @@ class TareasViewModel(
         viewModelScope.launch {
 
             val inicio = System.currentTimeMillis()
+
             val errorSimulado = _simularError.value
 
             try {
@@ -258,6 +295,14 @@ class TareasViewModel(
                     tiempo
                 )
 
+                // MEJORA 5: Guardar carga exitosa
+
+                registrarHistorial(
+                    tipo = "Carga: Una por una",
+                    detalle = "$perfil, " +
+                            "${pedidos.size} pedidos ($tiempo ms)"
+                )
+
             } catch (e: TimeoutCancellationException) {
 
                 _carga.value = CargaUi.Error(
@@ -269,7 +314,8 @@ class TareasViewModel(
                 if (e is CancellationException) throw e
 
                 _carga.value = CargaUi.Error(
-                    "No se pudo cargar: ${e.message ?: "Error desconocido"}"
+                    "No se pudo cargar: " +
+                            "${e.message ?: "Error desconocido"}"
                 )
             }
         }
@@ -284,6 +330,7 @@ class TareasViewModel(
         viewModelScope.launch {
 
             val inicio = System.currentTimeMillis()
+
             val errorSimulado = _simularError.value
 
             try {
@@ -294,10 +341,12 @@ class TareasViewModel(
                         coroutineScope {
 
                             val perfilDeferred = async {
+
                                 repo.cargarPerfil()
                             }
 
                             val pedidosDeferred = async {
+
                                 repo.cargarPedidos(errorSimulado)
                             }
 
@@ -318,6 +367,14 @@ class TareasViewModel(
                     tiempo
                 )
 
+                // MEJORA 5: Guardar carga exitosa
+
+                registrarHistorial(
+                    tipo = "Carga: A la vez",
+                    detalle = "$perfil, " +
+                            "${pedidos.size} pedidos ($tiempo ms)"
+                )
+
             } catch (e: TimeoutCancellationException) {
 
                 _carga.value = CargaUi.Error(
@@ -329,9 +386,77 @@ class TareasViewModel(
                 if (e is CancellationException) throw e
 
                 _carga.value = CargaUi.Error(
-                    "No se pudo cargar: ${e.message ?: "Error desconocido"}"
+                    "No se pudo cargar: " +
+                            "${e.message ?: "Error desconocido"}"
                 )
             }
+        }
+    }
+
+    // MEJORA 5: Historial de resultados con DataStore
+
+    private var repoHistorial: HistorialRepositoryLocal? = null
+
+    private val _historial =
+        MutableStateFlow<List<RegistroHistorial>>(
+            emptyList()
+        )
+
+    val historial: StateFlow<List<RegistroHistorial>> =
+        _historial.asStateFlow()
+
+    // Inicializar el historial una sola vez
+
+    fun iniciarHistorial(context: Context) {
+
+        if (repoHistorial != null) return
+
+        val repositorio = HistorialRepositoryLocal(
+            context.applicationContext
+        )
+
+        repoHistorial = repositorio
+
+        // Recuperar resultados al abrir la aplicación
+
+        viewModelScope.launch {
+
+            repositorio.historial.collect { registros ->
+
+                _historial.value = registros
+            }
+        }
+    }
+
+    // Guardar resultados exitosos
+
+    private suspend fun registrarHistorial(
+        tipo: String,
+        detalle: String
+    ) {
+
+        try {
+
+            repoHistorial?.guardar(
+                RegistroHistorial(
+                    tipo = tipo,
+                    detalle = detalle,
+                    fechaMillis = System.currentTimeMillis()
+                )
+            )
+
+        } catch (e: CancellationException) {
+
+            throw e
+
+        } catch (e: Exception) {
+
+            // Si falla DataStore, no perder el resultado
+            Log.e(
+                "HISTORIAL",
+                "No se pudo guardar el resultado",
+                e
+            )
         }
     }
 }
