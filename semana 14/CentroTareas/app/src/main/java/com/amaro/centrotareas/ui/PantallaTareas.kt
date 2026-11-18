@@ -224,28 +224,31 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         color = MaterialTheme.colorScheme.primary
                     )
 
+
                     Row(
                         horizontalArrangement =
                             Arrangement.spacedBy(8.dp)
                     ) {
+
                         OutlinedButton(
                             onClick = {
-                                // TODO Paso 6
+                                viewModel.cargarUnaPorUna()
                             },
-                            enabled = false
+                            enabled = carga != CargaUi.Cargando
                         ) {
                             Text("Una por una")
                         }
 
                         Button(
                             onClick = {
-                                // TODO Paso 6
+                                viewModel.cargarALaVez()
                             },
-                            enabled = false
+                            enabled = carga != CargaUi.Cargando
                         ) {
                             Text("A la vez")
                         }
                     }
+
 
                     Row(
                         horizontalArrangement =
