@@ -1,10 +1,14 @@
 package com.amaro.centrotareas.data
 
+import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import java.io.IOException
 
 class TareasRepositoryLocal : TareasRepository {
@@ -51,4 +55,15 @@ class TareasRepositoryLocal : TareasRepository {
         }
         return true
     }
+
+    override fun tareaConProgreso(): Flow<Float> = flow {
+        Log.d(
+            "HILO",
+            "Dentro: ${Thread.currentThread().name}"
+        )
+        for (i in 1..100) {
+            delay(40)
+            emit(i / 100f)
+        }
+    }.flowOn(Dispatchers.Default)
 }

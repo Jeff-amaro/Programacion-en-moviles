@@ -6,13 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.amaro.centrotareas.data.TareasRepository
 import com.amaro.centrotareas.model.PrimosUi
 import com.amaro.centrotareas.model.CargaUi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -37,7 +35,6 @@ class TareasViewModel(
     private val _corriendo = MutableStateFlow(false)
     val corriendo: StateFlow<Boolean> = _corriendo.asStateFlow()
 
-
     fun tareaLarga() {
 
         if (_corriendo.value) return
@@ -56,17 +53,8 @@ class TareasViewModel(
                     "Antes: ${Thread.currentThread().name}"
                 )
 
-                withContext(Dispatchers.Default) {
-
-                    Log.d(
-                        "HILO",
-                        "Dentro: ${Thread.currentThread().name}"
-                    )
-
-                    for (i in 1..100) {
-                        delay(40)
-                        _progreso.value = i / 100f
-                    }
+                repo.tareaConProgreso().collect { valor ->
+                    _progreso.value = valor
                 }
 
                 Log.d(
@@ -82,14 +70,12 @@ class TareasViewModel(
         }
     }
 
-
     fun cancelar() {
         if (_corriendo.value) {
             trabajo?.cancel()
             _mensaje.value = "Cancelado"
         }
     }
-
 
     // Contar primos: paso 5
 
@@ -127,7 +113,6 @@ class TareasViewModel(
         }
     }
 
-
     // Dos cargas: pasos 6 y 7
 
     private val _carga =
@@ -142,7 +127,6 @@ class TareasViewModel(
     fun cambiarSimularError(valor: Boolean) {
         _simularError.value = valor
     }
-
 
     fun cargarUnaPorUna() {
         if (_carga.value == CargaUi.Cargando) return
@@ -169,8 +153,6 @@ class TareasViewModel(
             }
         }
     }
-
-
 
     fun cargarALaVez() {
         if (_carga.value == CargaUi.Cargando) return
