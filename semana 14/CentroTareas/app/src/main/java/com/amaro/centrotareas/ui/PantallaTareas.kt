@@ -31,7 +31,11 @@ fun PantallaTareas(viewModel: TareasViewModel) {
     val carga by viewModel.carga.collectAsState()
     val simularError by viewModel.simularError.collectAsState()
 
+    val limiteDosSegundos by
+    viewModel.limiteDosSegundos.collectAsState()
+
     // MEJORA 5: Historial de resultados
+
     val historial by viewModel.historial.collectAsState()
 
     val context = LocalContext.current
@@ -42,8 +46,17 @@ fun PantallaTareas(viewModel: TareasViewModel) {
         )
     }
 
-    val limiteDosSegundos by
-    viewModel.limiteDosSegundos.collectAsState()
+    // MEJORA 6: Comparación de tiempos
+
+    val tiempos by viewModel.tiempos.collectAsState()
+
+    val ultimoSecuencial = tiempos.firstOrNull {
+        it.modo == "Una por una"
+    }?.milisegundos
+
+    val ultimoParalelo = tiempos.firstOrNull {
+        it.modo == "A la vez"
+    }?.milisegundos
 
     var toques by rememberSaveable {
         mutableIntStateOf(0)
@@ -77,7 +90,8 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement =
+                Arrangement.spacedBy(16.dp)
         ) {
 
             // TARJETA 1: TAREA CON PROGRESO
@@ -94,14 +108,15 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                     Text(
                         "Tarea con progreso",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style =
+                            MaterialTheme.typography.titleMedium,
+                        color =
+                            MaterialTheme.colorScheme.primary
                     )
 
                     Button(
                         onClick = { toques++ }
                     ) {
-
                         Text("Tócame: $toques")
                     }
 
@@ -116,7 +131,6 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             },
                             enabled = !corriendo
                         ) {
-
                             Text("Iniciar")
                         }
 
@@ -126,7 +140,6 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             },
                             enabled = corriendo
                         ) {
-
                             Text("Cancelar")
                         }
                     }
@@ -160,8 +173,10 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                     Text(
                         "Contar números primos",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style =
+                            MaterialTheme.typography.titleMedium,
+                        color =
+                            MaterialTheme.colorScheme.primary
                     )
 
                     OutlinedTextField(
@@ -187,16 +202,16 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         Button(
                             onClick = {
 
-                                numero?.takeIf { it >= 2 }?.let {
-
-                                    viewModel.contar(it)
-                                }
+                                numero
+                                    ?.takeIf { it >= 2 }
+                                    ?.let {
+                                        viewModel.contar(it)
+                                    }
                             },
                             enabled = numero != null &&
                                     numero >= 2 &&
                                     primos != PrimosUi.Calculando
                         ) {
-
                             Text("Contar")
                         }
 
@@ -204,9 +219,9 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             onClick = {
                                 viewModel.cancelarPrimos()
                             },
-                            enabled = primos == PrimosUi.Calculando
+                            enabled =
+                                primos == PrimosUi.Calculando
                         ) {
-
                             Text("Cancelar")
                         }
                     }
@@ -217,6 +232,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             Text("Esperando cálculo")
 
                         PrimosUi.Calculando ->
+
                             Column(
                                 verticalArrangement =
                                     Arrangement.spacedBy(8.dp)
@@ -224,7 +240,8 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                                 LinearProgressIndicator(
                                     progress = { progresoPrimos },
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier =
+                                        Modifier.fillMaxWidth()
                                 )
 
                                 Text(
@@ -234,15 +251,19 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             }
 
                         is PrimosUi.Listo ->
+
                             Surface(
                                 color = Color(0xFFE6F4EA),
-                                shape = MaterialTheme.shapes.medium
+                                shape =
+                                    MaterialTheme.shapes.medium
                             ) {
 
                                 Text(
-                                    text = "Primos: ${estado.cantidad}\n" +
-                                            "Tiempo: ${estado.milisegundos} ms",
-                                    modifier = Modifier.padding(12.dp),
+                                    text =
+                                        "Primos: ${estado.cantidad}\n" +
+                                                "Tiempo: ${estado.milisegundos} ms",
+                                    modifier =
+                                        Modifier.padding(12.dp),
                                     color = Color(0xFF1B5E20)
                                 )
                             }
@@ -267,8 +288,10 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                     Text(
                         "Dos cargas",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style =
+                            MaterialTheme.typography.titleMedium,
+                        color =
+                            MaterialTheme.colorScheme.primary
                     )
 
                     Row(
@@ -280,9 +303,9 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             onClick = {
                                 viewModel.cargarUnaPorUna()
                             },
-                            enabled = carga != CargaUi.Cargando
+                            enabled =
+                                carga != CargaUi.Cargando
                         ) {
-
                             Text("Una por una")
                         }
 
@@ -290,9 +313,9 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             onClick = {
                                 viewModel.cargarALaVez()
                             },
-                            enabled = carga != CargaUi.Cargando
+                            enabled =
+                                carga != CargaUi.Cargando
                         ) {
-
                             Text("A la vez")
                         }
                     }
@@ -326,7 +349,8 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             onCheckedChange = {
                                 viewModel.cambiarLimiteDosSegundos(it)
                             },
-                            enabled = carga != CargaUi.Cargando
+                            enabled =
+                                carga != CargaUi.Cargando
                         )
                     }
 
@@ -339,6 +363,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             CircularProgressIndicator()
 
                         is CargaUi.Exito ->
+
                             Text(
                                 "Modo: ${estado.modo}\n" +
                                         "Perfil: ${estado.perfil}\n" +
@@ -356,7 +381,8 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             ) {
 
                                 Column(
-                                    modifier = Modifier.padding(12.dp),
+                                    modifier =
+                                        Modifier.padding(12.dp),
                                     verticalArrangement =
                                         Arrangement.spacedBy(8.dp)
                                 ) {
@@ -372,7 +398,6 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                                             viewModel.cargarALaVez()
                                         }
                                     ) {
-
                                         Text("Reintentar")
                                     }
                                 }
@@ -398,8 +423,10 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                     Text(
                         "Historial de resultados",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style =
+                            MaterialTheme.typography.titleMedium,
+                        color =
+                            MaterialTheme.colorScheme.primary
                     )
 
                     if (historial.isEmpty()) {
@@ -410,16 +437,18 @@ fun PantallaTareas(viewModel: TareasViewModel) {
 
                     } else {
 
-                        historial.forEachIndexed { indice, registro ->
+                        historial.forEachIndexed {
+                                indice, registro ->
 
                             if (indice > 0) {
-
                                 HorizontalDivider()
                             }
 
                             Text(
-                                text = "${indice + 1}. ${registro.tipo}",
-                                style = MaterialTheme.typography.titleSmall
+                                text =
+                                    "${indice + 1}. ${registro.tipo}",
+                                style =
+                                    MaterialTheme.typography.titleSmall
                             )
 
                             Text(
@@ -427,17 +456,205 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                             )
 
                             Text(
-                                text = DateFormat.getDateTimeInstance(
-                                    DateFormat.SHORT,
-                                    DateFormat.SHORT
-                                ).format(
-                                    Date(registro.fechaMillis)
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
+                                text =
+                                    DateFormat.getDateTimeInstance(
+                                        DateFormat.SHORT,
+                                        DateFormat.SHORT
+                                    ).format(
+                                        Date(registro.fechaMillis)
+                                    ),
+                                style =
+                                    MaterialTheme.typography.bodySmall,
                                 color =
                                     MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                }
+            }
+
+            // TARJETA 5: COMPARACION DE TIEMPOS
+
+            // MEJORA 6: Tabla de cargas secuenciales y paralelas
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(12.dp)
+                ) {
+
+                    Text(
+                        "Comparación de tiempos",
+                        style =
+                            MaterialTheme.typography.titleMedium,
+                        color =
+                            MaterialTheme.colorScheme.primary
+                    )
+
+                    Text(
+                        "Registro de las últimas 10 cargas exitosas.",
+                        style =
+                            MaterialTheme.typography.bodySmall
+                    )
+
+                    if (tiempos.isEmpty()) {
+
+                        Text(
+                            "Todavía no hay tiempos registrados. " +
+                                    "Ejecuta Una por una y A la vez."
+                        )
+
+                    } else {
+
+                        // Cabecera de la tabla
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+
+                            Text(
+                                "N.º",
+                                modifier =
+                                    Modifier.weight(0.5f),
+                                style =
+                                    MaterialTheme.typography.labelMedium
+                            )
+
+                            Text(
+                                "Modo",
+                                modifier =
+                                    Modifier.weight(1.5f),
+                                style =
+                                    MaterialTheme.typography.labelMedium
+                            )
+
+                            Text(
+                                "Tiempo",
+                                modifier =
+                                    Modifier.weight(1f),
+                                style =
+                                    MaterialTheme.typography.labelMedium
+                            )
+                        }
+
+                        HorizontalDivider()
+
+                        // Filas con los tiempos registrados
+
+                        tiempos.forEachIndexed {
+                                indice, registro ->
+
+                            Row(
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                            ) {
+
+                                Text(
+                                    "${indice + 1}",
+                                    modifier =
+                                        Modifier.weight(0.5f)
+                                )
+
+                                Text(
+                                    registro.modo,
+                                    modifier =
+                                        Modifier.weight(1.5f)
+                                )
+
+                                Text(
+                                    "${registro.milisegundos} ms",
+                                    modifier =
+                                        Modifier.weight(1f)
+                                )
+                            }
+
+                            HorizontalDivider()
+                        }
+                    }
+
+                    // Comparar el último tiempo de cada modo
+
+                    if (
+                        ultimoSecuencial != null &&
+                        ultimoParalelo != null
+                    ) {
+
+                        val diferencia =
+                            ultimoSecuencial - ultimoParalelo
+
+                        val ahorroPorcentaje =
+                            if (ultimoSecuencial > 0L) {
+                                diferencia * 100.0 /
+                                        ultimoSecuencial
+                            } else {
+                                0.0
+                            }
+
+                        Surface(
+                            color =
+                                MaterialTheme.colorScheme.primaryContainer,
+                            shape =
+                                MaterialTheme.shapes.medium
+                        ) {
+
+                            Column(
+                                modifier =
+                                    Modifier.padding(12.dp),
+                                verticalArrangement =
+                                    Arrangement.spacedBy(6.dp)
+                            ) {
+
+                                Text(
+                                    "Última comparación",
+                                    style =
+                                        MaterialTheme.typography.titleSmall
+                                )
+
+                                Text(
+                                    "Una por una: " +
+                                            "$ultimoSecuencial ms"
+                                )
+
+                                Text(
+                                    "A la vez: " +
+                                            "$ultimoParalelo ms"
+                                )
+
+                                if (diferencia > 0) {
+
+                                    Text(
+                                        "Ahorro: $diferencia ms " +
+                                                "(${String.format("%.1f", ahorroPorcentaje)} %)"
+                                    )
+
+                                } else if (diferencia < 0) {
+
+                                    Text(
+                                        "En esta prueba, A la vez " +
+                                                "tardó ${-diferencia} ms más."
+                                    )
+
+                                } else {
+
+                                    Text(
+                                        "Ambos métodos tardaron lo mismo."
+                                    )
+                                }
+                            }
+                        }
+
+                    } else {
+
+                        Text(
+                            "Realiza al menos una carga de cada " +
+                                    "modo para ver la comparación.",
+                            style =
+                                MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             }

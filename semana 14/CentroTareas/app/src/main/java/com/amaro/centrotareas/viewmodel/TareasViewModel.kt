@@ -23,6 +23,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 
+// MEJORA 6: Representa una medición de tiempo
+data class RegistroTiempo(
+    val modo: String,
+    val milisegundos: Long
+)
+
 class TareasViewModel(
     private val repo: TareasRepository
 ) : ViewModel() {
@@ -63,7 +69,6 @@ class TareasViewModel(
                 // MEJORA 1: Progreso desde el Repository
 
                 repo.tareaConProgreso().collect { valor ->
-
                     _progreso.value = valor
                 }
 
@@ -75,7 +80,6 @@ class TareasViewModel(
                 _mensaje.value = "Terminó"
 
             } finally {
-
                 _corriendo.value = false
             }
         }
@@ -84,7 +88,6 @@ class TareasViewModel(
     fun cancelar() {
 
         if (_corriendo.value) {
-
             trabajo?.cancel()
             _mensaje.value = "Cancelado"
         }
@@ -125,8 +128,7 @@ class TareasViewModel(
                 repo.contarPrimosConProgreso(hasta)
                     .collect { avance ->
 
-                        _progresoPrimos.value =
-                            avance.progreso
+                        _progresoPrimos.value = avance.progreso
 
                         avance.cantidadFinal?.let { cantidad ->
 
@@ -149,7 +151,6 @@ class TareasViewModel(
                     }
 
             } catch (e: CancellationException) {
-
                 _primos.value = PrimosUi.Cancelado
                 throw e
             }
@@ -159,7 +160,6 @@ class TareasViewModel(
     fun cancelarPrimos() {
 
         if (_primos.value == PrimosUi.Calculando) {
-
             trabajoPrimos?.cancel()
             _primos.value = PrimosUi.Cancelado
         }
@@ -179,7 +179,6 @@ class TareasViewModel(
         _simularError.asStateFlow()
 
     fun cambiarSimularError(valor: Boolean) {
-
         _simularError.value = valor
     }
 
@@ -192,7 +191,6 @@ class TareasViewModel(
         _limiteDosSegundos.asStateFlow()
 
     fun cambiarLimiteDosSegundos(valor: Boolean) {
-
         _limiteDosSegundos.value = valor
     }
 
@@ -203,12 +201,10 @@ class TareasViewModel(
         return if (_limiteDosSegundos.value) {
 
             withTimeout(2000L) {
-
                 bloque()
             }
 
         } else {
-
             bloque()
         }
     }
@@ -226,13 +222,12 @@ class TareasViewModel(
             try {
 
                 return ejecutarConLimite {
-
                     bloque()
                 }
 
             } catch (e: TimeoutCancellationException) {
 
-                // Respetar el límite de la Mejora 2
+                // Se respeta el límite de la Mejora 2
                 throw e
 
             } catch (e: CancellationException) {
@@ -243,17 +238,40 @@ class TareasViewModel(
             } catch (e: Exception) {
 
                 if (intento == maxReintentos) {
-
                     throw e
                 }
 
-                // Espera creciente: 500, 1000 y 1500 ms
-
+                // Esperas: 500, 1000 y 1500 ms
                 delay((intento + 1) * 500L)
             }
         }
 
         error("No se pudo completar la carga")
+    }
+
+    // MEJORA 6: Comparación de tiempos
+
+    private val _tiempos =
+        MutableStateFlow<List<RegistroTiempo>>(
+            emptyList()
+        )
+
+    val tiempos: StateFlow<List<RegistroTiempo>> =
+        _tiempos.asStateFlow()
+
+    private fun registrarTiempo(
+        modo: String,
+        milisegundos: Long
+    ) {
+
+        val nuevoRegistro = RegistroTiempo(
+            modo = modo,
+            milisegundos = milisegundos
+        )
+
+        // Guardar las últimas 10 mediciones de esta sesión
+        _tiempos.value =
+            (listOf(nuevoRegistro) + _tiempos.value).take(10)
     }
 
     fun cargarUnaPorUna() {
@@ -265,7 +283,6 @@ class TareasViewModel(
         viewModelScope.launch {
 
             val inicio = System.currentTimeMillis()
-
             val errorSimulado = _simularError.value
 
             try {
@@ -293,6 +310,13 @@ class TareasViewModel(
                     perfil,
                     pedidos.size,
                     tiempo
+                )
+
+                // MEJORA 6: Registrar tiempo secuencial
+
+                registrarTiempo(
+                    modo = "Una por una",
+                    milisegundos = tiempo
                 )
 
                 // MEJORA 5: Guardar carga exitosa
@@ -330,7 +354,6 @@ class TareasViewModel(
         viewModelScope.launch {
 
             val inicio = System.currentTimeMillis()
-
             val errorSimulado = _simularError.value
 
             try {
@@ -341,12 +364,10 @@ class TareasViewModel(
                         coroutineScope {
 
                             val perfilDeferred = async {
-
                                 repo.cargarPerfil()
                             }
 
                             val pedidosDeferred = async {
-
                                 repo.cargarPedidos(errorSimulado)
                             }
 
@@ -365,6 +386,13 @@ class TareasViewModel(
                     perfil,
                     pedidos.size,
                     tiempo
+                )
+
+                // MEJORA 6: Registrar tiempo paralelo
+
+                registrarTiempo(
+                    modo = "A la vez",
+                    milisegundos = tiempo
                 )
 
                 // MEJORA 5: Guardar carga exitosa
@@ -405,8 +433,6 @@ class TareasViewModel(
     val historial: StateFlow<List<RegistroHistorial>> =
         _historial.asStateFlow()
 
-    // Inicializar el historial una sola vez
-
     fun iniciarHistorial(context: Context) {
 
         if (repoHistorial != null) return
@@ -422,13 +448,10 @@ class TareasViewModel(
         viewModelScope.launch {
 
             repositorio.historial.collect { registros ->
-
                 _historial.value = registros
             }
         }
     }
-
-    // Guardar resultados exitosos
 
     private suspend fun registrarHistorial(
         tipo: String,
@@ -451,7 +474,7 @@ class TareasViewModel(
 
         } catch (e: Exception) {
 
-            // Si falla DataStore, no perder el resultado
+            // Si falla DataStore, conservar el resultado
             Log.e(
                 "HISTORIAL",
                 "No se pudo guardar el resultado",
