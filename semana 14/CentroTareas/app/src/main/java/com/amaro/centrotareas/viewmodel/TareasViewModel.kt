@@ -12,6 +12,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -166,6 +167,46 @@ class TareasViewModel(
         }
     }
 
+    // MEJORA 3: Reintento automático
+
+    private suspend fun <T> ejecutarConReintentos(
+        bloque: suspend () -> T
+    ): T {
+
+        val maxReintentos = 3
+
+        for (intento in 0..maxReintentos) {
+
+            try {
+
+                return ejecutarConLimite {
+                    bloque()
+                }
+
+            } catch (e: TimeoutCancellationException) {
+
+                // Se respeta el límite de la Mejora 2
+                throw e
+
+            } catch (e: CancellationException) {
+
+                // No interrumpir la cancelación
+                throw e
+
+            } catch (e: Exception) {
+
+                if (intento == maxReintentos) {
+                    throw e
+                }
+
+                // Espera creciente entre reintentos
+                delay((intento + 1) * 500L)
+            }
+        }
+
+        error("No se pudo completar la carga")
+    }
+
     fun cargarUnaPorUna() {
 
         if (_carga.value == CargaUi.Cargando) return
@@ -179,14 +220,20 @@ class TareasViewModel(
 
             try {
 
-                val (perfil, pedidos) = ejecutarConLimite {
+                val (perfil, pedidos) =
+                    ejecutarConReintentos {
 
-                    val perfilCargado = repo.cargarPerfil()
-                    val pedidosCargados =
-                        repo.cargarPedidos(errorSimulado)
+                        val perfilCargado =
+                            repo.cargarPerfil()
 
-                    Pair(perfilCargado, pedidosCargados)
-                }
+                        val pedidosCargados =
+                            repo.cargarPedidos(errorSimulado)
+
+                        Pair(
+                            perfilCargado,
+                            pedidosCargados
+                        )
+                    }
 
                 val tiempo =
                     System.currentTimeMillis() - inicio
@@ -228,24 +275,25 @@ class TareasViewModel(
 
             try {
 
-                val (perfil, pedidos) = ejecutarConLimite {
+                val (perfil, pedidos) =
+                    ejecutarConReintentos {
 
-                    coroutineScope {
+                        coroutineScope {
 
-                        val perfilDeferred = async {
-                            repo.cargarPerfil()
+                            val perfilDeferred = async {
+                                repo.cargarPerfil()
+                            }
+
+                            val pedidosDeferred = async {
+                                repo.cargarPedidos(errorSimulado)
+                            }
+
+                            Pair(
+                                perfilDeferred.await(),
+                                pedidosDeferred.await()
+                            )
                         }
-
-                        val pedidosDeferred = async {
-                            repo.cargarPedidos(errorSimulado)
-                        }
-
-                        Pair(
-                            perfilDeferred.await(),
-                            pedidosDeferred.await()
-                        )
                     }
-                }
 
                 val tiempo =
                     System.currentTimeMillis() - inicio
