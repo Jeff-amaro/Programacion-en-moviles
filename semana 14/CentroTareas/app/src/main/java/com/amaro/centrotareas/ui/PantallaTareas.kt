@@ -11,10 +11,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import com.amaro.centrotareas.model.CargaUi
 import com.amaro.centrotareas.model.PrimosUi
 import com.amaro.centrotareas.viewmodel.TareasViewModel
-import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +27,9 @@ fun PantallaTareas(viewModel: TareasViewModel) {
     val carga by viewModel.carga.collectAsState()
     val simularError by viewModel.simularError.collectAsState()
 
+    val limiteDosSegundos by
+    viewModel.limiteDosSegundos.collectAsState()
+
     var toques by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -34,6 +37,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
     var hasta by rememberSaveable {
         mutableStateOf("500000")
     }
+
     val numero = hasta.toIntOrNull()
 
     Scaffold(
@@ -157,6 +161,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         horizontalArrangement =
                             Arrangement.spacedBy(8.dp)
                     ) {
+
                         Button(
                             onClick = {
                                 numero?.takeIf { it >= 2 }?.let {
@@ -181,6 +186,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                     }
 
                     when (val estado = primos) {
+
                         PrimosUi.Inicial ->
                             Text("Esperando cálculo")
 
@@ -251,6 +257,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         horizontalArrangement =
                             Arrangement.spacedBy(12.dp)
                     ) {
+
                         Text("Simular error")
 
                         Switch(
@@ -261,7 +268,26 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         )
                     }
 
+                    // MEJORA 2: Tiempo máximo
+
+                    Row(
+                        horizontalArrangement =
+                            Arrangement.spacedBy(12.dp)
+                    ) {
+
+                        Text("Límite de 2 segundos")
+
+                        Switch(
+                            checked = limiteDosSegundos,
+                            onCheckedChange = {
+                                viewModel.cambiarLimiteDosSegundos(it)
+                            },
+                            enabled = carga != CargaUi.Cargando
+                        )
+                    }
+
                     when (val estado = carga) {
+
                         CargaUi.Inicial ->
                             Text("Esperando carga")
 
