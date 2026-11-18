@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 
 class TareasViewModel(
     private val repo: TareasRepository
@@ -96,7 +97,34 @@ class TareasViewModel(
     val primos: StateFlow<PrimosUi> =
         _primos.asStateFlow()
 
-    // TODO Paso 5: contar() y cancelarPrimos()
+    private var trabajoPrimos: Job? = null
+    fun contar(hasta: Int) {
+        if (hasta < 2) return
+        if (_primos.value == PrimosUi.Calculando) return
+        _primos.value = PrimosUi.Calculando
+        trabajoPrimos = viewModelScope.launch {
+            val inicio = System.currentTimeMillis()
+            try {
+                val cantidad = repo.contarPrimos(hasta)
+                val tiempo =
+                    System.currentTimeMillis() - inicio
+                _primos.value = PrimosUi.Listo(
+                    cantidad,
+                    tiempo
+                )
+            } catch (e: CancellationException) {
+                _primos.value = PrimosUi.Cancelado
+                throw e
+            }
+        }
+    }
+    fun cancelarPrimos() {
+        if (_primos.value == PrimosUi.Calculando) {
+            trabajoPrimos?.cancel()
+            _primos.value = PrimosUi.Cancelado
+        }
+    }
+
 
     // Dos cargas: pasos 6 y 7
 

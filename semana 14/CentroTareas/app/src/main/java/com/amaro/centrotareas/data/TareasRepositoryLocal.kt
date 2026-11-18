@@ -1,6 +1,10 @@
 package com.amaro.centrotareas.data
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.io.IOException
 
 class TareasRepositoryLocal : TareasRepository {
@@ -24,9 +28,27 @@ class TareasRepositoryLocal : TareasRepository {
             "Pedido 103"
         )
     }
-
-    override suspend fun contarPrimos(hasta: Int): Int {
-        // TODO Paso 5: implementar el cálculo
-        return 0
+    override suspend fun contarPrimos(
+        hasta: Int
+    ): Int = withContext(Dispatchers.Default) {
+        var cantidad = 0
+        for (n in 2..hasta) {
+            currentCoroutineContext().ensureActive()
+            if (esPrimo(n)) {
+                cantidad++
+            }
+        }
+        cantidad
+    }
+    private fun esPrimo(n: Int): Boolean {
+        if (n < 2) return false
+        var d = 2
+        while (d.toLong() * d <= n) {
+            if (n % d == 0) {
+                return false
+            }
+            d++
+        }
+        return true
     }
 }

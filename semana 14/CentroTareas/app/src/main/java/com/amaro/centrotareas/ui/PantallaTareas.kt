@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.amaro.centrotareas.model.CargaUi
 import com.amaro.centrotareas.model.PrimosUi
 import com.amaro.centrotareas.viewmodel.TareasViewModel
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +33,7 @@ fun PantallaTareas(viewModel: TareasViewModel) {
     var hasta by rememberSaveable {
         mutableStateOf("500000")
     }
+    val numero = hasta.toIntOrNull()
 
     Scaffold(
         topBar = {
@@ -156,18 +158,22 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                     ) {
                         Button(
                             onClick = {
-                                // TODO Paso 5
+                                numero?.takeIf { it >= 2 }?.let {
+                                    viewModel.contar(it)
+                                }
                             },
-                            enabled = false
+                            enabled = numero != null &&
+                                    numero >= 2 &&
+                                    primos != PrimosUi.Calculando
                         ) {
                             Text("Contar")
                         }
 
                         OutlinedButton(
                             onClick = {
-                                // TODO Paso 5
+                                viewModel.cancelarPrimos()
                             },
-                            enabled = false
+                            enabled = primos == PrimosUi.Calculando
                         ) {
                             Text("Cancelar")
                         }
@@ -180,11 +186,20 @@ fun PantallaTareas(viewModel: TareasViewModel) {
                         PrimosUi.Calculando ->
                             CircularProgressIndicator()
 
+
                         is PrimosUi.Listo ->
-                            Text(
-                                "Primos: ${estado.cantidad}\n" +
-                                        "Tiempo: ${estado.milisegundos} ms"
-                            )
+                            Surface(
+                                color = Color(0xFFE6F4EA),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(
+                                    text = "Primos: ${estado.cantidad}\n" +
+                                            "Tiempo: ${estado.milisegundos} ms",
+                                    modifier = Modifier.padding(12.dp),
+                                    color = Color(0xFF1B5E20)
+                                )
+                            }
+
 
                         PrimosUi.Cancelado ->
                             Text("Cancelado")
