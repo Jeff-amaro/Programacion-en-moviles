@@ -91,11 +91,19 @@ class TareasViewModel(
 
     private var trabajoPrimos: Job? = null
 
+    // MEJORA 4: Progreso del cálculo de primos
+
+    private val _progresoPrimos = MutableStateFlow(0f)
+    val progresoPrimos: StateFlow<Float> =
+        _progresoPrimos.asStateFlow()
+
     fun contar(hasta: Int) {
+
         if (hasta < 2) return
 
         if (_primos.value == PrimosUi.Calculando) return
 
+        _progresoPrimos.value = 0f
         _primos.value = PrimosUi.Calculando
 
         trabajoPrimos = viewModelScope.launch {
@@ -103,15 +111,23 @@ class TareasViewModel(
             val inicio = System.currentTimeMillis()
 
             try {
-                val cantidad = repo.contarPrimos(hasta)
 
-                val tiempo =
-                    System.currentTimeMillis() - inicio
+                repo.contarPrimosConProgreso(hasta)
+                    .collect { avance ->
 
-                _primos.value = PrimosUi.Listo(
-                    cantidad,
-                    tiempo
-                )
+                        _progresoPrimos.value = avance.progreso
+
+                        avance.cantidadFinal?.let { cantidad ->
+
+                            val tiempo =
+                                System.currentTimeMillis() - inicio
+
+                            _primos.value = PrimosUi.Listo(
+                                cantidad,
+                                tiempo
+                            )
+                        }
+                    }
 
             } catch (e: CancellationException) {
                 _primos.value = PrimosUi.Cancelado
@@ -185,12 +201,10 @@ class TareasViewModel(
 
             } catch (e: TimeoutCancellationException) {
 
-                // Se respeta el límite de la Mejora 2
                 throw e
 
             } catch (e: CancellationException) {
 
-                // No interrumpir la cancelación
                 throw e
 
             } catch (e: Exception) {
@@ -199,7 +213,6 @@ class TareasViewModel(
                     throw e
                 }
 
-                // Espera creciente entre reintentos
                 delay((intento + 1) * 500L)
             }
         }
