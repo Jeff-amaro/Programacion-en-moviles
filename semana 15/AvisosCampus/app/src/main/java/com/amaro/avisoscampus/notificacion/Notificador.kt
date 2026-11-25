@@ -1,3 +1,4 @@
+
 package com.amaro.avisoscampus.notificacion
 
 import android.app.NotificationChannel
@@ -15,10 +16,12 @@ import com.amaro.avisoscampus.R
 import android.app.PendingIntent
 import android.content.Intent
 import com.amaro.avisoscampus.MainActivity
+import com.amaro.avisoscampus.model.Origen
 
 object Notificador {
 
     const val CANAL = "avisos"
+    const val CANAL_URGENTE = "urgentes"
 
     fun crearCanal(context: Context) {
         // TODO Paso 1: crear el canal de notificación
@@ -34,6 +37,15 @@ object Notificador {
             )
 
             manager.createNotificationChannel(canal)
+
+            // Mejora 1: canal de notificaciones urgentes
+            val canalUrgente = NotificationChannel(
+                CANAL_URGENTE,
+                "Urgentes",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+
+            manager.createNotificationChannel(canalUrgente)
         }
     }
 
@@ -65,11 +77,26 @@ object Notificador {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notificacion = NotificationCompat.Builder(context, CANAL)
+        // Mejora 1: seleccionar canal según el origen
+        val esUrgente = aviso.origen == Origen.RECORDATORIO
+
+        val canalSeleccionado = if (esUrgente) {
+            CANAL_URGENTE
+        } else {
+            CANAL
+        }
+
+        val prioridad = if (esUrgente) {
+            NotificationCompat.PRIORITY_HIGH
+        } else {
+            NotificationCompat.PRIORITY_DEFAULT
+        }
+
+        val notificacion = NotificationCompat.Builder(context, canalSeleccionado)
             .setSmallIcon(R.drawable.ic_android_black_24dp)
             .setContentTitle(aviso.titulo)
             .setContentText(aviso.texto)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(prioridad)
             .setAutoCancel(true)
             .setContentIntent(pendiente)
             .build()
