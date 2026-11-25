@@ -10,12 +10,32 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.amaro.avisoscampus.notificacion.Notificador
 import com.amaro.avisoscampus.viewmodel.AvisosViewModel
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.graphics.Color
+import com.amaro.avisoscampus.model.PermisoUi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaAvisos(vm: AvisosViewModel) {
 
     val contexto = LocalContext.current
+
+    val permiso by vm.permiso.collectAsState()
+
+    val lanzador = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { concedido ->
+        vm.permisoRespondido(concedido)
+    }
+
+    LaunchedEffect(Unit) {
+        if (Notificador.tienePermiso(contexto)) {
+            vm.permisoRespondido(true)
+        }
+    }
 
     LaunchedEffect(Unit) {
         vm.eventos.collect { aviso ->
@@ -46,10 +66,32 @@ fun PantallaAvisos(vm: AvisosViewModel) {
         ) {
 
             TarjetaAvisos("Permiso de notificaciones") {
-                Text("Sin pedir")
+                val estado = when (permiso) {
+                    PermisoUi.SinPedir -> "Sin pedir"
+                    PermisoUi.Concedido -> "Permitido"
+                    PermisoUi.Denegado -> "Denegado"
+                }
+
+                val colorEstado = when (permiso) {
+                    PermisoUi.SinPedir -> Color.Gray
+                    PermisoUi.Concedido -> Color(0xFF2E7D32)
+                    PermisoUi.Denegado -> Color.Red
+                }
+
+                Text(
+                    text = estado,
+                    color = colorEstado
+                )
 
                 Button(onClick = {
                     // TODO Paso 2
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        lanzador.launch(
+                            Manifest.permission.POST_NOTIFICATIONS
+                        )
+                    } else {
+                        vm.permisoRespondido(true)
+                    }
                 }) {
                     Text("Permitir notificaciones")
                 }

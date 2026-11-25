@@ -5,6 +5,9 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import com.amaro.avisoscampus.model.Aviso
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
 object Notificador {
 
@@ -29,7 +32,14 @@ object Notificador {
 
     fun tienePermiso(context: Context): Boolean {
         // TODO Paso 2: comprobar el permiso
-        return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return true
+        }
+
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     fun mostrar(context: Context, aviso: Aviso): Boolean {
