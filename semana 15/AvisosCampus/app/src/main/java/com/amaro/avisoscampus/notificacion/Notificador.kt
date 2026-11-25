@@ -8,6 +8,10 @@ import com.amaro.avisoscampus.model.Aviso
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import android.annotation.SuppressLint
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.amaro.avisoscampus.R
 
 object Notificador {
 
@@ -42,9 +46,25 @@ object Notificador {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    @SuppressLint("MissingPermission")
     fun mostrar(context: Context, aviso: Aviso): Boolean {
         // TODO Paso 3: construir y mostrar la notificación
+        if (!tienePermiso(context)) {
+            return false
+        }
+
+        val notificacion = NotificationCompat.Builder(context, CANAL)
+            .setSmallIcon(R.drawable.ic_android_black_24dp)
+            .setContentTitle(aviso.titulo)
+            .setContentText(aviso.texto)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .build()
+
+        NotificationManagerCompat.from(context)
+            .notify(aviso.id, notificacion)
+
         // TODO Paso 4: agregar PendingIntent
-        return false
+        return true
     }
 }
