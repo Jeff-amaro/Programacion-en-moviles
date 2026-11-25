@@ -49,10 +49,17 @@ class PostsViewModel(
 
     val publicacion = _publicacion.asStateFlow()
 
-    // MEJORA 2: Búsqueda por título
     private val _busqueda = MutableStateFlow("")
 
     val busqueda = _busqueda.asStateFlow()
+
+    // MEJORA 3: Estado de eliminación
+    private val _eliminacion =
+        MutableStateFlow<UiState<Unit>?>(null)
+
+    val eliminacion = _eliminacion.asStateFlow()
+
+    private val eliminados = mutableSetOf<Int>()
 
     val listaFiltrada = combine(
         lista,
@@ -83,16 +90,17 @@ class PostsViewModel(
         initialValue = UiState.Cargando
     )
 
-    fun buscar(texto: String) {
-        _busqueda.value = texto
-    }
-
     private var detalleJob: Job? = null
     private var listaJob: Job? = null
     private var publicarJob: Job? = null
+    private var eliminarJob: Job? = null
 
     init {
         cargar()
+    }
+
+    fun buscar(texto: String) {
+        _busqueda.value = texto
     }
 
     fun cargar() {
@@ -113,7 +121,11 @@ class PostsViewModel(
 
             resultado
                 .onSuccess { posts ->
-                    _lista.value = UiState.Exito(posts)
+                    _lista.value = UiState.Exito(
+                        posts.filterNot {
+                            it.id in eliminados
+                        }
+                    )
                 }
                 .onFailure { error ->
                     _lista.value = UiState.Error(
@@ -131,6 +143,8 @@ class PostsViewModel(
     fun abrir(id: Int) {
 
         detalleJob?.cancel()
+        eliminarJob?.cancel()
+        _eliminacion.value = null
 
         detalleJob = viewModelScope.launch {
 
@@ -161,6 +175,8 @@ class PostsViewModel(
 
     fun cerrarDetalle() {
         detalleJob?.cancel()
+        eliminarJob?.cancel()
+        _eliminacion.value = null
     }
 
     fun publicar(titulo: String, texto: String) {
@@ -198,5 +214,46 @@ class PostsViewModel(
     fun limpiarPublicacion() {
         publicarJob?.cancel()
         _publicacion.value = null
+    }
+
+    // MEJORA 3: Eliminar publicación
+    fun eliminar(id: Int) {
+
+        if (_eliminacion.value == UiState.Cargando ||
+            id in eliminados
+        ) {
+            return
+        }
+
+        _eliminacion.value = UiState.Cargando
+
+        eliminarJob = viewModelScope.launch {
+
+            repo.eliminar(id)
+                .onSuccess {
+
+                    eliminados.add(id)
+
+                    val actual = _lista.value
+
+                    if (actual is UiState.Exito) {
+
+                        _lista.value = UiState.Exito(
+                            actual.datos.filterNot {
+                                it.id == id
+                            }
+                        )
+                    }
+
+                    _eliminacion.value =
+                        UiState.Exito(Unit)
+                }
+                .onFailure { error ->
+
+                    _eliminacion.value = UiState.Error(
+                        mensajeDe(error)
+                    )
+                }
+        }
     }
 }
