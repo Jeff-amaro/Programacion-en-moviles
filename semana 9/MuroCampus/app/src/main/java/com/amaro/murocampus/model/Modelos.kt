@@ -33,3 +33,9 @@ data class NuevoPost(
     val title: String,
     val body: String
 )
+
+// MEJORA 4: Modelo para editar
+@Serializable
+data class EditarPost(
+    val title: String
+)

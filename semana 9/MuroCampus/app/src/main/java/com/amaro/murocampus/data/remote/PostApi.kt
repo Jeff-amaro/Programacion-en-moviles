@@ -4,10 +4,12 @@ package com.amaro.murocampus.data.remote
 import com.amaro.murocampus.model.Post
 import com.amaro.murocampus.model.Comentario
 import com.amaro.murocampus.model.NuevoPost
+import com.amaro.murocampus.model.EditarPost
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.DELETE
+import retrofit2.http.PATCH
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Body
@@ -37,9 +39,15 @@ interface PostApi {
         @Body nuevo: NuevoPost
     ): Post
 
-    // MEJORA 3: Eliminar publicación
     @DELETE("posts/{id}")
     suspend fun eliminar(
         @Path("id") id: Int
     ): Response<Unit>
+
+    // MEJORA 4: Editar publicación
+    @PATCH("posts/{id}")
+    suspend fun editar(
+        @Path("id") id: Int,
+        @Body cambios: EditarPost
+    ): Post
 }

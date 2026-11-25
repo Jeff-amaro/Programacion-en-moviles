@@ -1,10 +1,13 @@
 
 package com.amaro.murocampus.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,10 +32,159 @@ fun PantallaDetalle(
     val eliminacion by
     vm.eliminacion.collectAsStateWithLifecycle()
 
+    val edicion by
+    vm.edicion.collectAsStateWithLifecycle()
+
     var confirmarEliminar by rememberSaveable(id) {
         mutableStateOf(false)
     }
 
+    var mostrarEditar by rememberSaveable(id) {
+        mutableStateOf(false)
+    }
+
+    var nuevoTitulo by rememberSaveable(id) {
+        mutableStateOf("")
+    }
+
+    val guardando = edicion == UiState.Cargando
+
+    val ocupado = guardando ||
+            eliminacion == UiState.Cargando
+
+    BackHandler(enabled = mostrarEditar) {
+        if (!guardando) {
+            vm.limpiarEdicion()
+            mostrarEditar = false
+        }
+    }
+
+    // MEJORA 4: Pantalla de edición
+    if (mostrarEditar) {
+
+        val finalizado = edicion is UiState.Exito
+
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+
+            Text(
+                text = "Editar publicación",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            OutlinedTextField(
+                value = nuevoTitulo,
+                onValueChange = { nuevoTitulo = it },
+                label = { Text("Nuevo título") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !guardando && !finalizado
+            )
+
+            Button(
+                onClick = {
+                    vm.editar(id, nuevoTitulo)
+                },
+                enabled = nuevoTitulo.isNotBlank() &&
+                        !guardando &&
+                        !finalizado,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1565A5),
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    if (guardando)
+                        "Guardando..."
+                    else
+                        "Guardar cambios"
+                )
+            }
+
+            when (val resultado = edicion) {
+
+                UiState.Cargando -> {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                is UiState.Exito -> {
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFDDF5E3)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+
+                            Text(
+                                text = "Publicación editada correctamente",
+                                color = Color(0xFF216E39),
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+
+                            Text(
+                                text = resultado.datos.title,
+                                color = Color(0xFF216E39)
+                            )
+                        }
+                    }
+                }
+
+                is UiState.Error -> {
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFDAD6)
+                        )
+                    ) {
+                        Text(
+                            text = resultado.mensaje,
+                            color = Color(0xFF690005),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+
+                null -> Unit
+            }
+
+            OutlinedButton(
+                onClick = {
+                    vm.limpiarEdicion()
+                    mostrarEditar = false
+                },
+                enabled = !guardando,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    if (finalizado)
+                        "Volver al detalle"
+                    else
+                        "Cancelar"
+                )
+            }
+        }
+
+        return
+    }
+
+    // Confirmación de eliminación
     if (confirmarEliminar) {
 
         AlertDialog(
@@ -125,6 +277,7 @@ fun PantallaDetalle(
                 }
 
                 is UiState.Error -> {
+
                     ErrorConReintento(
                         mensaje = actual.mensaje,
                         onReintentar = { vm.abrir(id) }
@@ -164,14 +317,34 @@ fun PantallaDetalle(
                                 modifier = Modifier.height(16.dp)
                             )
 
-                            // MEJORA 3: Botón eliminar
+                            // Botón editar
+                            Button(
+                                onClick = {
+                                    vm.limpiarEdicion()
+                                    nuevoTitulo = post.title
+                                    mostrarEditar = true
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !ocupado,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF1565A5),
+                                    contentColor = Color.White
+                                )
+                            ) {
+                                Text("Editar publicación")
+                            }
+
+                            Spacer(
+                                modifier = Modifier.height(6.dp)
+                            )
+
+                            // Botón eliminar
                             Button(
                                 onClick = {
                                     confirmarEliminar = true
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled =
-                                    eliminacion != UiState.Cargando,
+                                enabled = !ocupado,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFD32F2F),
                                     contentColor = Color.White

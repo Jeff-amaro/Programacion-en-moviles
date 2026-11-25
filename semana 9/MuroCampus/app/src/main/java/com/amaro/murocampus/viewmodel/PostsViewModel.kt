@@ -8,6 +8,7 @@ import com.amaro.murocampus.data.mensajeDe
 import com.amaro.murocampus.model.Post
 import com.amaro.murocampus.model.Comentario
 import com.amaro.murocampus.model.NuevoPost
+import com.amaro.murocampus.model.EditarPost
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,21 +27,16 @@ class PostsViewModel(
 ) : ViewModel() {
 
     private val _lista =
-        MutableStateFlow<UiState<List<Post>>>(
-            UiState.Cargando
-        )
+        MutableStateFlow<UiState<List<Post>>>(UiState.Cargando)
 
     val lista = _lista.asStateFlow()
 
     private val _detalle =
-        MutableStateFlow<UiState<DetalleUi>>(
-            UiState.Cargando
-        )
+        MutableStateFlow<UiState<DetalleUi>>(UiState.Cargando)
 
     val detalle = _detalle.asStateFlow()
 
-    private val _usuarioFiltro =
-        MutableStateFlow<Int?>(null)
+    private val _usuarioFiltro = MutableStateFlow<Int?>(null)
 
     val usuarioFiltro = _usuarioFiltro.asStateFlow()
 
@@ -53,13 +49,20 @@ class PostsViewModel(
 
     val busqueda = _busqueda.asStateFlow()
 
-    // MEJORA 3: Estado de eliminación
     private val _eliminacion =
         MutableStateFlow<UiState<Unit>?>(null)
 
     val eliminacion = _eliminacion.asStateFlow()
 
+    // MEJORA 4: Estado de edición
+    private val _edicion =
+        MutableStateFlow<UiState<Post>?>(null)
+
+    val edicion = _edicion.asStateFlow()
+
     private val eliminados = mutableSetOf<Int>()
+
+    private val titulosEditados = mutableMapOf<Int, String>()
 
     val listaFiltrada = combine(
         lista,
@@ -94,9 +97,16 @@ class PostsViewModel(
     private var listaJob: Job? = null
     private var publicarJob: Job? = null
     private var eliminarJob: Job? = null
+    private var editarJob: Job? = null
 
     init {
         cargar()
+    }
+
+    private fun aplicarEdicion(post: Post): Post {
+        return post.copy(
+            title = titulosEditados[post.id] ?: post.title
+        )
     }
 
     fun buscar(texto: String) {
@@ -124,7 +134,7 @@ class PostsViewModel(
                     _lista.value = UiState.Exito(
                         posts.filterNot {
                             it.id in eliminados
-                        }
+                        }.map { aplicarEdicion(it) }
                     )
                 }
                 .onFailure { error ->
@@ -144,7 +154,10 @@ class PostsViewModel(
 
         detalleJob?.cancel()
         eliminarJob?.cancel()
+        editarJob?.cancel()
+
         _eliminacion.value = null
+        _edicion.value = null
 
         detalleJob = viewModelScope.launch {
 
@@ -156,7 +169,10 @@ class PostsViewModel(
                     repo.comentarios(id)
                         .onSuccess { comentarios ->
                             _detalle.value = UiState.Exito(
-                                DetalleUi(post, comentarios)
+                                DetalleUi(
+                                    aplicarEdicion(post),
+                                    comentarios
+                                )
                             )
                         }
                         .onFailure { error ->
@@ -176,7 +192,10 @@ class PostsViewModel(
     fun cerrarDetalle() {
         detalleJob?.cancel()
         eliminarJob?.cancel()
+        editarJob?.cancel()
+
         _eliminacion.value = null
+        _edicion.value = null
     }
 
     fun publicar(titulo: String, texto: String) {
@@ -216,10 +235,10 @@ class PostsViewModel(
         _publicacion.value = null
     }
 
-    // MEJORA 3: Eliminar publicación
     fun eliminar(id: Int) {
 
         if (_eliminacion.value == UiState.Cargando ||
+            _edicion.value == UiState.Cargando ||
             id in eliminados
         ) {
             return
@@ -233,11 +252,11 @@ class PostsViewModel(
                 .onSuccess {
 
                     eliminados.add(id)
+                    titulosEditados.remove(id)
 
                     val actual = _lista.value
 
                     if (actual is UiState.Exito) {
-
                         _lista.value = UiState.Exito(
                             actual.datos.filterNot {
                                 it.id == id
@@ -245,15 +264,87 @@ class PostsViewModel(
                         )
                     }
 
-                    _eliminacion.value =
-                        UiState.Exito(Unit)
+                    _eliminacion.value = UiState.Exito(Unit)
                 }
                 .onFailure { error ->
-
                     _eliminacion.value = UiState.Error(
                         mensajeDe(error)
                     )
                 }
         }
+    }
+
+    // MEJORA 4: Editar título de la publicación
+    fun editar(id: Int, nuevoTitulo: String) {
+
+        if (nuevoTitulo.isBlank() ||
+            _edicion.value == UiState.Cargando ||
+            _eliminacion.value == UiState.Cargando ||
+            id in eliminados
+        ) {
+            return
+        }
+
+        val actualDetalle = _detalle.value
+
+        if (actualDetalle !is UiState.Exito ||
+            actualDetalle.datos.post.id != id
+        ) {
+            return
+        }
+
+        _edicion.value = UiState.Cargando
+
+        editarJob = viewModelScope.launch {
+
+            val cambios = EditarPost(
+                title = nuevoTitulo.trim()
+            )
+
+            repo.editar(id, cambios)
+                .onSuccess { postEditado ->
+
+                    titulosEditados[id] = postEditado.title
+
+                    val actual = _lista.value
+
+                    if (actual is UiState.Exito) {
+
+                        _lista.value = UiState.Exito(
+                            actual.datos.map { post ->
+                                aplicarEdicion(post)
+                            }
+                        )
+                    }
+
+                    val detalleActual = _detalle.value
+
+                    if (detalleActual is UiState.Exito &&
+                        detalleActual.datos.post.id == id
+                    ) {
+
+                        _detalle.value = UiState.Exito(
+                            detalleActual.datos.copy(
+                                post = aplicarEdicion(
+                                    detalleActual.datos.post
+                                )
+                            )
+                        )
+                    }
+
+                    _edicion.value =
+                        UiState.Exito(postEditado)
+                }
+                .onFailure { error ->
+                    _edicion.value = UiState.Error(
+                        mensajeDe(error)
+                    )
+                }
+        }
+    }
+
+    fun limpiarEdicion() {
+        editarJob?.cancel()
+        _edicion.value = null
     }
 }

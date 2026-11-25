@@ -5,6 +5,7 @@ import com.amaro.murocampus.data.remote.PostApi
 import com.amaro.murocampus.model.Post
 import com.amaro.murocampus.model.Comentario
 import com.amaro.murocampus.model.NuevoPost
+import com.amaro.murocampus.model.EditarPost
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
@@ -23,6 +24,11 @@ interface PostRepository {
     suspend fun crear(nuevo: NuevoPost): Result<Post>
 
     suspend fun eliminar(id: Int): Result<Unit>
+
+    suspend fun editar(
+        id: Int,
+        cambios: EditarPost
+    ): Result<Post>
 }
 
 class PostRepositoryRemote(
@@ -56,7 +62,6 @@ class PostRepositoryRemote(
     override suspend fun crear(nuevo: NuevoPost): Result<Post> =
         llamar { api.crear(nuevo) }
 
-    // MEJORA 3: Verificar respuesta DELETE
     override suspend fun eliminar(id: Int): Result<Unit> =
         llamar {
             val respuesta = api.eliminar(id)
@@ -67,6 +72,13 @@ class PostRepositoryRemote(
 
             Unit
         }
+
+    // MEJORA 4: Editar publicación
+    override suspend fun editar(
+        id: Int,
+        cambios: EditarPost
+    ): Result<Post> =
+        llamar { api.editar(id, cambios) }
 }
 
 fun mensajeDe(e: Throwable): String = when (e) {
