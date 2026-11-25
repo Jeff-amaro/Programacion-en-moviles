@@ -1,3 +1,4 @@
+
 package com.amaro.avisoscampus.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -86,6 +87,25 @@ class AvisosViewModel(
     }
 
     // TODO Paso 6: escuchandoAvion, cambiarEscucha y alCambiarModoAvion()
+
+    private val _escuchandoAvion = MutableStateFlow(false)
+    val escuchandoAvion: StateFlow<Boolean> = _escuchandoAvion.asStateFlow()
+
+    fun cambiarEscucha(valor: Boolean) {
+        _escuchandoAvion.value = valor
+    }
+
+    fun alCambiarModoAvion(activo: Boolean) {
+        viewModelScope.launch {
+            val aviso = repo.registrar(
+                titulo = "Modo avión",
+                texto = if (activo) "Activado" else "Desactivado",
+                origen = Origen.MODO_AVION
+            )
+
+            _eventos.emit(aviso)
+        }
+    }
 
     // TODO Paso 8: noSePudoMostrar()
 }
