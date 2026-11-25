@@ -12,6 +12,9 @@ import android.annotation.SuppressLint
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.amaro.avisoscampus.R
+import android.app.PendingIntent
+import android.content.Intent
+import com.amaro.avisoscampus.MainActivity
 
 object Notificador {
 
@@ -53,12 +56,22 @@ object Notificador {
             return false
         }
 
+        val intent = Intent(context, MainActivity::class.java)
+
+        val pendiente = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notificacion = NotificationCompat.Builder(context, CANAL)
             .setSmallIcon(R.drawable.ic_android_black_24dp)
             .setContentTitle(aviso.titulo)
             .setContentText(aviso.texto)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setContentIntent(pendiente)
             .build()
 
         NotificationManagerCompat.from(context)
