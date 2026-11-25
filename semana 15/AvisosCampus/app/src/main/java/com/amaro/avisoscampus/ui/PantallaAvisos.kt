@@ -1,4 +1,3 @@
-
 package com.amaro.avisoscampus.ui
 
 import androidx.compose.foundation.layout.*
@@ -33,6 +32,8 @@ fun PantallaAvisos(vm: AvisosViewModel) {
     val faltan by vm.faltan.collectAsState()
 
     val escuchando by vm.escuchandoAvion.collectAsState()
+
+    val avisos by vm.avisos.collectAsState()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -182,10 +183,8 @@ fun PantallaAvisos(vm: AvisosViewModel) {
                 }
             }
 
-            TarjetaAvisos("Historial") {
-                Text("Sin avisos todavía")
-                // TODO Paso 7
-            }
+            // TODO Paso 7
+            HistorialAvisos(avisos = avisos)
         }
     }
 }
