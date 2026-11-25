@@ -13,11 +13,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import com.amaro.murocampus.data.PostRepositoryRemote
 import com.amaro.murocampus.data.remote.RetrofitClient
 import com.amaro.murocampus.ui.PantallaLista
 import com.amaro.murocampus.ui.PantallaDetalle
+import com.amaro.murocampus.ui.PantallaCrear
 import com.amaro.murocampus.ui.theme.MuroCampusTheme
 import com.amaro.murocampus.viewmodel.PostsViewModel
 import com.amaro.murocampus.viewmodel.PostsViewModelFactory
@@ -47,15 +49,29 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf<Int?>(null)
                 }
 
+                var mostrarCrear by rememberSaveable {
+                    mutableStateOf(false)
+                }
+
                 BackHandler(
-                    enabled = idSeleccionado != null
+                    enabled = idSeleccionado != null ||
+                            mostrarCrear
                 ) {
-                    vm.cerrarDetalle()
-                    idSeleccionado = null
+                    if (mostrarCrear) {
+
+                        vm.limpiarPublicacion()
+                        mostrarCrear = false
+
+                    } else {
+
+                        vm.cerrarDetalle()
+                        idSeleccionado = null
+                    }
                 }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
+
                     topBar = {
                         TopAppBar(
                             title = {
@@ -66,33 +82,70 @@ class MainActivity : ComponentActivity() {
                                 titleContentColor = Color.White
                             )
                         )
+                    },
+
+                    floatingActionButton = {
+
+                        if (idSeleccionado == null &&
+                            !mostrarCrear
+                        ) {
+
+                            FloatingActionButton(
+                                onClick = {
+                                    vm.limpiarPublicacion()
+                                    mostrarCrear = true
+                                },
+                                containerColor = Color(0xFF1565A5),
+                                contentColor = Color.White
+                            ) {
+                                Text(
+                                    text = "+",
+                                    fontSize = 30.sp
+                                )
+                            }
+                        }
                     }
+
                 ) { innerPadding ->
 
                     val id = idSeleccionado
 
-                    if (id == null) {
+                    when {
 
-                        PantallaLista(
-                            vm = vm,
-                            modifier = Modifier.padding(
-                                innerPadding
-                            ),
-                            onPostClick = { postId ->
-                                vm.abrir(postId)
-                                idSeleccionado = postId
-                            }
-                        )
+                        mostrarCrear -> {
 
-                    } else {
-
-                        PantallaDetalle(
-                            vm = vm,
-                            id = id,
-                            modifier = Modifier.padding(
-                                innerPadding
+                            PantallaCrear(
+                                vm = vm,
+                                modifier = Modifier.padding(
+                                    innerPadding
+                                )
                             )
-                        )
+                        }
+
+                        id != null -> {
+
+                            PantallaDetalle(
+                                vm = vm,
+                                id = id,
+                                modifier = Modifier.padding(
+                                    innerPadding
+                                )
+                            )
+                        }
+
+                        else -> {
+
+                            PantallaLista(
+                                vm = vm,
+                                modifier = Modifier.padding(
+                                    innerPadding
+                                ),
+                                onPostClick = { postId ->
+                                    vm.abrir(postId)
+                                    idSeleccionado = postId
+                                }
+                            )
+                        }
                     }
                 }
             }

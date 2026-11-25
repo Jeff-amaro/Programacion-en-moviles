@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.amaro.murocampus.data.PostRepository
 import com.amaro.murocampus.model.Post
 import com.amaro.murocampus.model.Comentario
+import com.amaro.murocampus.model.NuevoPost
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,14 +35,20 @@ class PostsViewModel(
 
     val detalle = _detalle.asStateFlow()
 
-    // Filtro por usuario
     private val _usuarioFiltro =
         MutableStateFlow<Int?>(null)
 
     val usuarioFiltro = _usuarioFiltro.asStateFlow()
 
+    // Estado de la nueva publicación
+    private val _publicacion =
+        MutableStateFlow<UiState<Post>?>(null)
+
+    val publicacion = _publicacion.asStateFlow()
+
     private var detalleJob: Job? = null
     private var listaJob: Job? = null
+    private var publicarJob: Job? = null
 
     init {
         cargar()
@@ -93,12 +100,8 @@ class PostsViewModel(
 
                     repo.comentarios(id)
                         .onSuccess { comentarios ->
-
                             _detalle.value = UiState.Exito(
-                                DetalleUi(
-                                    post = post,
-                                    comentarios = comentarios
-                                )
+                                DetalleUi(post, comentarios)
                             )
                         }
                         .onFailure { error ->
@@ -117,5 +120,43 @@ class PostsViewModel(
 
     fun cerrarDetalle() {
         detalleJob?.cancel()
+    }
+
+    // Crear una publicación
+    fun publicar(titulo: String, texto: String) {
+
+        if (titulo.isBlank() || texto.isBlank()) {
+            return
+        }
+
+        if (_publicacion.value == UiState.Cargando) {
+            return
+        }
+
+        _publicacion.value = UiState.Cargando
+
+        publicarJob = viewModelScope.launch {
+
+            val nuevo = NuevoPost(
+                userId = 1,
+                title = titulo.trim(),
+                body = texto.trim()
+            )
+
+            repo.crear(nuevo)
+                .onSuccess { post ->
+                    _publicacion.value = UiState.Exito(post)
+                }
+                .onFailure { error ->
+                    _publicacion.value = UiState.Error(
+                        mensajeDe(error)
+                    )
+                }
+        }
+    }
+
+    fun limpiarPublicacion() {
+        publicarJob?.cancel()
+        _publicacion.value = null
     }
 }
