@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,12 +23,39 @@ fun PantallaLista(
     modifier: Modifier = Modifier,
     onPostClick: (Int) -> Unit
 ) {
-    val estado by vm.lista.collectAsStateWithLifecycle()
-    val usuarioFiltro by vm.usuarioFiltro.collectAsStateWithLifecycle()
+    val estado by vm.listaFiltrada.collectAsStateWithLifecycle()
+
+    val usuarioFiltro by
+    vm.usuarioFiltro.collectAsStateWithLifecycle()
+
+    val busqueda by
+    vm.busqueda.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier.fillMaxSize()
     ) {
+
+        // MEJORA 2: Buscador de publicaciones
+        OutlinedTextField(
+            value = busqueda,
+            onValueChange = { vm.buscar(it) },
+            label = { Text("Buscar publicación") },
+            placeholder = { Text("Escribe un título...") },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            trailingIcon = {
+                if (busqueda.isNotEmpty()) {
+                    TextButton(
+                        onClick = { vm.buscar("") }
+                    ) {
+                        Text("X")
+                    }
+                }
+            }
+        )
 
         // Filtros por usuario
         LazyRow(
@@ -81,7 +109,11 @@ fun PantallaLista(
                     if (actual.datos.isEmpty()) {
 
                         Text(
-                            text = "Sin publicaciones",
+                            text = if (busqueda.isNotBlank()) {
+                                "No se encontraron publicaciones"
+                            } else {
+                                "Sin publicaciones"
+                            },
                             modifier = Modifier.align(
                                 Alignment.Center
                             )
@@ -95,6 +127,7 @@ fun PantallaLista(
                                 vertical = 8.dp
                             )
                         ) {
+
                             items(
                                 items = actual.datos,
                                 key = { it.id }
