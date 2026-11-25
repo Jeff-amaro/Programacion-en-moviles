@@ -1,3 +1,4 @@
+
 package com.amaro.avisoscampus.ui
 
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.content.ContextCompat
 import com.amaro.avisoscampus.receiver.ModoAvionReceiver
+import android.provider.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +36,8 @@ fun PantallaAvisos(vm: AvisosViewModel) {
     val escuchando by vm.escuchandoAvion.collectAsState()
 
     val avisos by vm.avisos.collectAsState()
+
+    val mensaje by vm.mensaje.collectAsState()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -51,6 +55,9 @@ fun PantallaAvisos(vm: AvisosViewModel) {
         vm.eventos.collect { aviso ->
             val mostrado = Notificador.mostrar(contexto, aviso)
             // TODO Paso 8: manejar permiso denegado
+            if (!mostrado) {
+                vm.noSePudoMostrar()
+            }
         }
     }
 
@@ -116,7 +123,9 @@ fun PantallaAvisos(vm: AvisosViewModel) {
 
                 Button(onClick = {
                     // TODO Paso 2
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (Notificador.tienePermiso(contexto)) {
+                        vm.permisoRespondido(true)
+                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         lanzador.launch(
                             Manifest.permission.POST_NOTIFICATIONS
                         )
@@ -125,6 +134,46 @@ fun PantallaAvisos(vm: AvisosViewModel) {
                     }
                 }) {
                     Text("Permitir notificaciones")
+                }
+
+                if (permiso == PermisoUi.Denegado) {
+                    OutlinedButton(onClick = {
+                        val intent = if (
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        ) {
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(
+                                    Settings.EXTRA_APP_PACKAGE,
+                                    contexto.packageName
+                                )
+                        } else {
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                .setData(
+                                    android.net.Uri.parse(
+                                        "package:${contexto.packageName}"
+                                    )
+                                )
+                        }
+
+                        contexto.startActivity(intent)
+                    }) {
+                        Text("Abrir ajustes")
+                    }
+                }
+            }
+
+            mensaje?.let { texto ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = texto,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
                 }
             }
 
