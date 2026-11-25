@@ -31,6 +31,9 @@ class PostsViewModel(
 
     val lista = _lista.asStateFlow()
 
+    // MEJORA 6: Estado de almacenamiento local
+    val usandoCache = repo.usandoCache
+
     private val _detalle =
         MutableStateFlow<UiState<DetalleUi>>(UiState.Cargando)
 
@@ -129,7 +132,7 @@ class PostsViewModel(
         _busqueda.value = texto
     }
 
-    // Cargar la primera página
+    // MEJORA 6: Cargar publicaciones y cambios guardados
     fun cargar() {
 
         listaJob?.cancel()
@@ -143,6 +146,32 @@ class PostsViewModel(
         val userId = _usuarioFiltro.value
 
         listaJob = viewModelScope.launch {
+
+            // Recuperar cambios almacenados en Room
+            val cambios = repo.cambiosLocales()
+                .getOrElse { error ->
+
+                    _lista.value = UiState.Error(
+                        mensajeDe(error)
+                    )
+
+                    return@launch
+                }
+
+            cambios.forEach { cambio ->
+
+                if (cambio.eliminado) {
+
+                    eliminados.add(cambio.id)
+                    titulosEditados.remove(cambio.id)
+
+                } else {
+
+                    cambio.titulo?.let { titulo ->
+                        titulosEditados[cambio.id] = titulo
+                    }
+                }
+            }
 
             repo.listarPaginado(
                 inicio = 0,
@@ -317,6 +346,7 @@ class PostsViewModel(
         _publicacion.value = null
     }
 
+    // Eliminar publicación
     fun eliminar(id: Int) {
 
         if (_eliminacion.value == UiState.Cargando ||
@@ -358,6 +388,7 @@ class PostsViewModel(
         }
     }
 
+    // Editar publicación
     fun editar(id: Int, nuevoTitulo: String) {
 
         if (nuevoTitulo.isBlank() ||

@@ -34,6 +34,9 @@ fun PantallaLista(
     val cargandoMas by vm.cargandoMas.collectAsStateWithLifecycle()
     val errorPagina by vm.errorPagina.collectAsStateWithLifecycle()
 
+    // MEJORA 6: Estado de caché con Room
+    val usandoCache by vm.usandoCache.collectAsStateWithLifecycle()
+
     val cantidad = when (val actual = listaCompleta) {
         is UiState.Exito -> actual.datos.size
         else -> 0
@@ -43,6 +46,7 @@ fun PantallaLista(
         modifier = modifier.fillMaxSize()
     ) {
 
+        // Buscador de publicaciones
         OutlinedTextField(
             value = busqueda,
             onValueChange = { vm.buscar(it) },
@@ -99,6 +103,54 @@ fun PantallaLista(
         }
 
         HorizontalDivider()
+
+        // MEJORA 6: Aviso de almacenamiento local
+        if (usandoCache && estado is UiState.Exito) {
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 12.dp,
+                        vertical = 6.dp
+                    ),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFFFF3CD)
+                )
+            ) {
+
+                Column(
+                    modifier = Modifier.padding(12.dp)
+                ) {
+
+                    Text(
+                        text = "Sin conexión a internet",
+                        color = Color(0xFF856404),
+                        fontSize = 14.sp
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(4.dp)
+                    )
+
+                    Text(
+                        text = "Mostrando publicaciones guardadas en Room",
+                        color = Color(0xFF856404),
+                        fontSize = 12.sp
+                    )
+
+                    TextButton(
+                        onClick = { vm.cargar() }
+                    ) {
+                        Text(
+                            text = "Actualizar",
+                            color = Color(0xFF1565A5)
+                        )
+                    }
+                }
+            }
+        }
 
         if (estado is UiState.Exito) {
 
@@ -191,6 +243,7 @@ fun PantallaLista(
                                                 Color(0xFFFFDAD6)
                                         )
                                     ) {
+
                                         Text(
                                             text = mensaje,
                                             color = Color(0xFF690005),
@@ -217,6 +270,7 @@ fun PantallaLista(
                                             contentColor = Color.White
                                         )
                                     ) {
+
                                         Text(
                                             if (errorPagina != null)
                                                 "Reintentar carga"

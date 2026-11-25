@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import com.amaro.murocampus.data.PostRepositoryRemote
+import com.amaro.murocampus.data.local.MuroCampusDatabase
 import com.amaro.murocampus.data.remote.RetrofitClient
 import com.amaro.murocampus.ui.PantallaLista
 import com.amaro.murocampus.ui.PantallaDetalle
@@ -31,8 +32,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // MEJORA 6: Inicializar base de datos Room
+        val database = MuroCampusDatabase.obtenerDatabase(
+            applicationContext
+        )
+
+        // Conectar Retrofit y Room al Repository
         val repository = PostRepositoryRemote(
-            RetrofitClient.api
+            RetrofitClient.api,
+            database.postDao()
         )
 
         val factory = PostsViewModelFactory(repository)
