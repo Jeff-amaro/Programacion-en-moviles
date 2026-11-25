@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.amaro.murocampus.viewmodel.PostsViewModel
 import com.amaro.murocampus.viewmodel.UiState
@@ -24,18 +25,24 @@ fun PantallaLista(
     onPostClick: (Int) -> Unit
 ) {
     val estado by vm.listaFiltrada.collectAsStateWithLifecycle()
+    val listaCompleta by vm.lista.collectAsStateWithLifecycle()
+    val usuarioFiltro by vm.usuarioFiltro.collectAsStateWithLifecycle()
+    val busqueda by vm.busqueda.collectAsStateWithLifecycle()
 
-    val usuarioFiltro by
-    vm.usuarioFiltro.collectAsStateWithLifecycle()
+    // MEJORA 5: Estados de paginación
+    val hayMas by vm.hayMas.collectAsStateWithLifecycle()
+    val cargandoMas by vm.cargandoMas.collectAsStateWithLifecycle()
+    val errorPagina by vm.errorPagina.collectAsStateWithLifecycle()
 
-    val busqueda by
-    vm.busqueda.collectAsStateWithLifecycle()
+    val cantidad = when (val actual = listaCompleta) {
+        is UiState.Exito -> actual.datos.size
+        else -> 0
+    }
 
     Column(
         modifier = modifier.fillMaxSize()
     ) {
 
-        // MEJORA 2: Buscador de publicaciones
         OutlinedTextField(
             value = busqueda,
             onValueChange = { vm.buscar(it) },
@@ -48,6 +55,7 @@ fun PantallaLista(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             trailingIcon = {
                 if (busqueda.isNotEmpty()) {
+
                     TextButton(
                         onClick = { vm.buscar("") }
                     ) {
@@ -92,6 +100,19 @@ fun PantallaLista(
 
         HorizontalDivider()
 
+        if (estado is UiState.Exito) {
+
+            Text(
+                text = "Publicaciones cargadas: $cantidad",
+                color = Color(0xFF1565A5),
+                fontSize = 12.sp,
+                modifier = Modifier.padding(
+                    horizontal = 16.dp,
+                    vertical = 8.dp
+                )
+            )
+        }
+
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -106,39 +127,113 @@ fun PantallaLista(
 
                 is UiState.Exito -> {
 
-                    if (actual.datos.isEmpty()) {
-
-                        Text(
-                            text = if (busqueda.isNotBlank()) {
-                                "No se encontraron publicaciones"
-                            } else {
-                                "Sin publicaciones"
-                            },
-                            modifier = Modifier.align(
-                                Alignment.Center
-                            )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            top = 8.dp,
+                            bottom = 90.dp
                         )
+                    ) {
 
-                    } else {
+                        if (actual.datos.isEmpty()) {
 
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(
-                                vertical = 8.dp
+                            item {
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+
+                                    Text(
+                                        text = if (busqueda.isNotBlank()) {
+                                            "No se encontraron publicaciones"
+                                        } else {
+                                            "Sin publicaciones"
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        items(
+                            items = actual.datos,
+                            key = { it.id }
+                        ) { post ->
+
+                            TarjetaPost(
+                                post = post,
+                                onClick = {
+                                    onPostClick(post.id)
+                                }
                             )
-                        ) {
+                        }
 
-                            items(
-                                items = actual.datos,
-                                key = { it.id }
-                            ) { post ->
+                        // MEJORA 5: Cargar más publicaciones
+                        item {
 
-                                TarjetaPost(
-                                    post = post,
-                                    onClick = {
-                                        onPostClick(post.id)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment =
+                                    Alignment.CenterHorizontally,
+                                verticalArrangement =
+                                    Arrangement.spacedBy(10.dp)
+                            ) {
+
+                                errorPagina?.let { mensaje ->
+
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor =
+                                                Color(0xFFFFDAD6)
+                                        )
+                                    ) {
+                                        Text(
+                                            text = mensaje,
+                                            color = Color(0xFF690005),
+                                            modifier = Modifier.padding(12.dp)
+                                        )
                                     }
-                                )
+                                }
+
+                                if (cargandoMas) {
+
+                                    CircularProgressIndicator(
+                                        color = Color(0xFF1565A5)
+                                    )
+
+                                    Text("Cargando más publicaciones...")
+
+                                } else if (hayMas) {
+
+                                    Button(
+                                        onClick = { vm.cargarMas() },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF1565A5),
+                                            contentColor = Color.White
+                                        )
+                                    ) {
+                                        Text(
+                                            if (errorPagina != null)
+                                                "Reintentar carga"
+                                            else
+                                                "Cargar más"
+                                        )
+                                    }
+
+                                } else if (cantidad > 0) {
+
+                                    Text(
+                                        text = "No hay más publicaciones",
+                                        color = MaterialTheme.colorScheme
+                                            .onSurfaceVariant,
+                                        fontSize = 12.sp
+                                    )
+                                }
                             }
                         }
                     }

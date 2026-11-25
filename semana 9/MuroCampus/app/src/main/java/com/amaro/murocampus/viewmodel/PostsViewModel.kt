@@ -54,15 +54,26 @@ class PostsViewModel(
 
     val eliminacion = _eliminacion.asStateFlow()
 
-    // MEJORA 4: Estado de edición
     private val _edicion =
         MutableStateFlow<UiState<Post>?>(null)
 
     val edicion = _edicion.asStateFlow()
 
     private val eliminados = mutableSetOf<Int>()
-
     private val titulosEditados = mutableMapOf<Int, String>()
+
+    // MEJORA 5: Variables de paginación
+    private val limite = 20
+    private var siguienteInicio = 0
+
+    private val _hayMas = MutableStateFlow(false)
+    val hayMas = _hayMas.asStateFlow()
+
+    private val _cargandoMas = MutableStateFlow(false)
+    val cargandoMas = _cargandoMas.asStateFlow()
+
+    private val _errorPagina = MutableStateFlow<String?>(null)
+    val errorPagina = _errorPagina.asStateFlow()
 
     val listaFiltrada = combine(
         lista,
@@ -70,7 +81,6 @@ class PostsViewModel(
     ) { estado, texto ->
 
         when (estado) {
-
             is UiState.Exito -> {
                 UiState.Exito(
                     estado.datos.filter { post ->
@@ -109,38 +119,105 @@ class PostsViewModel(
         )
     }
 
+    private fun procesarPosts(posts: List<Post>): List<Post> {
+        return posts
+            .filterNot { it.id in eliminados }
+            .map { aplicarEdicion(it) }
+    }
+
     fun buscar(texto: String) {
         _busqueda.value = texto
     }
 
+    // Cargar la primera página
     fun cargar() {
 
         listaJob?.cancel()
 
+        siguienteInicio = 0
+        _hayMas.value = false
+        _cargandoMas.value = false
+        _errorPagina.value = null
+        _lista.value = UiState.Cargando
+
+        val userId = _usuarioFiltro.value
+
         listaJob = viewModelScope.launch {
 
-            _lista.value = UiState.Cargando
-
-            val userId = _usuarioFiltro.value
-
-            val resultado = if (userId == null) {
-                repo.listar()
-            } else {
-                repo.porUsuario(userId)
-            }
-
-            resultado
+            repo.listarPaginado(
+                inicio = 0,
+                limite = limite,
+                userId = userId
+            )
                 .onSuccess { posts ->
+
+                    siguienteInicio = posts.size
+
+                    _hayMas.value = posts.size == limite
+
                     _lista.value = UiState.Exito(
-                        posts.filterNot {
-                            it.id in eliminados
-                        }.map { aplicarEdicion(it) }
+                        procesarPosts(posts)
                     )
                 }
                 .onFailure { error ->
+
                     _lista.value = UiState.Error(
                         mensajeDe(error)
                     )
+                }
+        }
+    }
+
+    // MEJORA 5: Cargar las siguientes publicaciones
+    fun cargarMas() {
+
+        if (_cargandoMas.value ||
+            !_hayMas.value ||
+            _lista.value !is UiState.Exito ||
+            listaJob?.isActive == true
+        ) {
+            return
+        }
+
+        _cargandoMas.value = true
+        _errorPagina.value = null
+
+        val inicio = siguienteInicio
+        val userId = _usuarioFiltro.value
+
+        listaJob = viewModelScope.launch {
+
+            repo.listarPaginado(
+                inicio = inicio,
+                limite = limite,
+                userId = userId
+            )
+                .onSuccess { nuevosPosts ->
+
+                    val actual = _lista.value
+
+                    if (actual is UiState.Exito) {
+
+                        val nuevos = procesarPosts(nuevosPosts)
+
+                        _lista.value = UiState.Exito(
+                            (actual.datos + nuevos)
+                                .distinctBy { it.id }
+                        )
+                    }
+
+                    siguienteInicio = inicio + nuevosPosts.size
+
+                    _hayMas.value =
+                        nuevosPosts.size == limite
+
+                    _cargandoMas.value = false
+                }
+                .onFailure { error ->
+
+                    _errorPagina.value = mensajeDe(error)
+
+                    _cargandoMas.value = false
                 }
         }
     }
@@ -168,6 +245,7 @@ class PostsViewModel(
 
                     repo.comentarios(id)
                         .onSuccess { comentarios ->
+
                             _detalle.value = UiState.Exito(
                                 DetalleUi(
                                     aplicarEdicion(post),
@@ -176,12 +254,14 @@ class PostsViewModel(
                             )
                         }
                         .onFailure { error ->
+
                             _detalle.value = UiState.Error(
                                 mensajeDe(error)
                             )
                         }
                 }
                 .onFailure { error ->
+
                     _detalle.value = UiState.Error(
                         mensajeDe(error)
                     )
@@ -190,6 +270,7 @@ class PostsViewModel(
     }
 
     fun cerrarDetalle() {
+
         detalleJob?.cancel()
         eliminarJob?.cancel()
         editarJob?.cancel()
@@ -200,11 +281,10 @@ class PostsViewModel(
 
     fun publicar(titulo: String, texto: String) {
 
-        if (titulo.isBlank() || texto.isBlank()) {
-            return
-        }
-
-        if (_publicacion.value == UiState.Cargando) {
+        if (titulo.isBlank() ||
+            texto.isBlank() ||
+            _publicacion.value == UiState.Cargando
+        ) {
             return
         }
 
@@ -220,9 +300,11 @@ class PostsViewModel(
 
             repo.crear(nuevo)
                 .onSuccess { post ->
+
                     _publicacion.value = UiState.Exito(post)
                 }
                 .onFailure { error ->
+
                     _publicacion.value = UiState.Error(
                         mensajeDe(error)
                     )
@@ -257,6 +339,7 @@ class PostsViewModel(
                     val actual = _lista.value
 
                     if (actual is UiState.Exito) {
+
                         _lista.value = UiState.Exito(
                             actual.datos.filterNot {
                                 it.id == id
@@ -267,6 +350,7 @@ class PostsViewModel(
                     _eliminacion.value = UiState.Exito(Unit)
                 }
                 .onFailure { error ->
+
                     _eliminacion.value = UiState.Error(
                         mensajeDe(error)
                     )
@@ -274,7 +358,6 @@ class PostsViewModel(
         }
     }
 
-    // MEJORA 4: Editar título de la publicación
     fun editar(id: Int, nuevoTitulo: String) {
 
         if (nuevoTitulo.isBlank() ||
@@ -311,8 +394,8 @@ class PostsViewModel(
                     if (actual is UiState.Exito) {
 
                         _lista.value = UiState.Exito(
-                            actual.datos.map { post ->
-                                aplicarEdicion(post)
+                            actual.datos.map {
+                                aplicarEdicion(it)
                             }
                         )
                     }
@@ -332,10 +415,10 @@ class PostsViewModel(
                         )
                     }
 
-                    _edicion.value =
-                        UiState.Exito(postEditado)
+                    _edicion.value = UiState.Exito(postEditado)
                 }
                 .onFailure { error ->
+
                     _edicion.value = UiState.Error(
                         mensajeDe(error)
                     )

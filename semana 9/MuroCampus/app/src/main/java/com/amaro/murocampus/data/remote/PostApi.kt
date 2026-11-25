@@ -44,10 +44,17 @@ interface PostApi {
         @Path("id") id: Int
     ): Response<Unit>
 
-    // MEJORA 4: Editar publicación
     @PATCH("posts/{id}")
     suspend fun editar(
         @Path("id") id: Int,
         @Body cambios: EditarPost
     ): Post
+
+    // MEJORA 5: Paginación
+    @GET("posts")
+    suspend fun listarPaginado(
+        @Query("_start") inicio: Int,
+        @Query("_limit") limite: Int,
+        @Query("userId") userId: Int? = null
+    ): List<Post>
 }

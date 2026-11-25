@@ -29,6 +29,12 @@ interface PostRepository {
         id: Int,
         cambios: EditarPost
     ): Result<Post>
+
+    suspend fun listarPaginado(
+        inicio: Int,
+        limite: Int,
+        userId: Int? = null
+    ): Result<List<Post>>
 }
 
 class PostRepositoryRemote(
@@ -73,12 +79,21 @@ class PostRepositoryRemote(
             Unit
         }
 
-    // MEJORA 4: Editar publicación
     override suspend fun editar(
         id: Int,
         cambios: EditarPost
     ): Result<Post> =
         llamar { api.editar(id, cambios) }
+
+    // MEJORA 5: Obtener publicaciones por páginas
+    override suspend fun listarPaginado(
+        inicio: Int,
+        limite: Int,
+        userId: Int?
+    ): Result<List<Post>> =
+        llamar {
+            api.listarPaginado(inicio, limite, userId)
+        }
 }
 
 fun mensajeDe(e: Throwable): String = when (e) {
