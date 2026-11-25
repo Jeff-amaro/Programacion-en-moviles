@@ -1,0 +1,130 @@
+package com.amaro.avisoscampus.ui
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.amaro.avisoscampus.notificacion.Notificador
+import com.amaro.avisoscampus.viewmodel.AvisosViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PantallaAvisos(vm: AvisosViewModel) {
+
+    val contexto = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        vm.eventos.collect { aviso ->
+            val mostrado = Notificador.mostrar(contexto, aviso)
+            // TODO Paso 8: manejar permiso denegado
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("AvisosCampus") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+
+            TarjetaAvisos("Permiso de notificaciones") {
+                Text("Sin pedir")
+
+                Button(onClick = {
+                    // TODO Paso 2
+                }) {
+                    Text("Permitir notificaciones")
+                }
+            }
+
+            TarjetaAvisos("Avisos") {
+                Button(onClick = {
+                    // TODO Paso 3
+                }) {
+                    Text("Mostrar aviso")
+                }
+            }
+
+            TarjetaAvisos("Recordatorio") {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(onClick = {
+                        // TODO Paso 5
+                    }) {
+                        Text("Recordar en 10 s")
+                    }
+
+                    OutlinedButton(
+                        onClick = {},
+                        enabled = false
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            }
+
+            TarjetaAvisos("Receptor de anuncios") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Escuchar el modo avión")
+
+                    Switch(
+                        checked = false,
+                        onCheckedChange = {
+                            // TODO Paso 6
+                        }
+                    )
+                }
+            }
+
+            TarjetaAvisos("Historial") {
+                Text("Sin avisos todavía")
+                // TODO Paso 7
+            }
+        }
+    }
+}
+
+@Composable
+private fun TarjetaAvisos(
+    titulo: String,
+    contenido: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            contenido()
+        }
+    }
+}
