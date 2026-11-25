@@ -1,3 +1,4 @@
+
 package com.amaro.murocampus.data
 
 import com.amaro.murocampus.data.remote.PostApi
@@ -5,6 +6,9 @@ import com.amaro.murocampus.model.Post
 import com.amaro.murocampus.model.Comentario
 import com.amaro.murocampus.model.NuevoPost
 import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.SerializationException
+import retrofit2.HttpException
+import java.io.IOException
 
 interface PostRepository {
 
@@ -49,4 +53,20 @@ class PostRepositoryRemote(
 
     override suspend fun crear(nuevo: NuevoPost): Result<Post> =
         llamar { api.crear(nuevo) }
+}
+
+// Manejo de mensajes de error
+fun mensajeDe(e: Throwable): String = when (e) {
+
+    is IOException ->
+        "Sin conexión a internet.\nRevisa tu red e inténtalo otra vez."
+
+    is HttpException ->
+        "Error del servidor (${e.code()})"
+
+    is SerializationException ->
+        "Respuesta inesperada"
+
+    else ->
+        "Error desconocido"
 }
