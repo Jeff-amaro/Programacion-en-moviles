@@ -1,3 +1,4 @@
+
 package com.amaro.murocampus.ui
 
 import androidx.compose.foundation.layout.*
@@ -14,7 +15,8 @@ import com.amaro.murocampus.viewmodel.UiState
 @Composable
 fun PantallaLista(
     vm: PostsViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPostClick: (Int) -> Unit
 ) {
     val estado by vm.lista.collectAsStateWithLifecycle()
 
@@ -40,7 +42,12 @@ fun PantallaLista(
                         key = { it.id }
                     ) { post ->
 
-                        TarjetaPost(post = post)
+                        TarjetaPost(
+                            post = post,
+                            onClick = {
+                                onPostClick(post.id)
+                            }
+                        )
                     }
                 }
             }

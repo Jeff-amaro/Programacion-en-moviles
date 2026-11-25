@@ -1,18 +1,23 @@
+
 package com.amaro.murocampus
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModelProvider
 import com.amaro.murocampus.data.PostRepositoryRemote
 import com.amaro.murocampus.data.remote.RetrofitClient
 import com.amaro.murocampus.ui.PantallaLista
+import com.amaro.murocampus.ui.PantallaDetalle
 import com.amaro.murocampus.ui.theme.MuroCampusTheme
 import com.amaro.murocampus.viewmodel.PostsViewModel
 import com.amaro.murocampus.viewmodel.PostsViewModelFactory
@@ -28,9 +33,7 @@ class MainActivity : ComponentActivity() {
             RetrofitClient.api
         )
 
-        val factory = PostsViewModelFactory(
-            repository
-        )
+        val factory = PostsViewModelFactory(repository)
 
         val vm = ViewModelProvider(
             this,
@@ -40,10 +43,20 @@ class MainActivity : ComponentActivity() {
         setContent {
             MuroCampusTheme {
 
+                var idSeleccionado by rememberSaveable {
+                    mutableStateOf<Int?>(null)
+                }
+
+                BackHandler(
+                    enabled = idSeleccionado != null
+                ) {
+                    vm.cerrarDetalle()
+                    idSeleccionado = null
+                }
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-
                         TopAppBar(
                             title = {
                                 Text("MuroCampus")
@@ -56,12 +69,31 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
 
-                    PantallaLista(
-                        vm = vm,
-                        modifier = Modifier.padding(
-                            innerPadding
+                    val id = idSeleccionado
+
+                    if (id == null) {
+
+                        PantallaLista(
+                            vm = vm,
+                            modifier = Modifier.padding(
+                                innerPadding
+                            ),
+                            onPostClick = { postId ->
+                                vm.abrir(postId)
+                                idSeleccionado = postId
+                            }
                         )
-                    )
+
+                    } else {
+
+                        PantallaDetalle(
+                            vm = vm,
+                            id = id,
+                            modifier = Modifier.padding(
+                                innerPadding
+                            )
+                        )
+                    }
                 }
             }
         }
