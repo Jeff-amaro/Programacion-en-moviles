@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.*
 import androidx.lifecycle.viewModelScope
 import com.amaro.avisoscampus.model.Origen
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 
 class AvisosViewModel(
     private val repo: AvisosRepository
@@ -49,6 +51,39 @@ class AvisosViewModel(
     }
 
     // TODO Paso 5: faltan, recordarEn y cancelarRecordatorio()
+
+    private var trabajo: Job? = null
+
+    private val _faltan = MutableStateFlow<Int?>(null)
+    val faltan: StateFlow<Int?> = _faltan.asStateFlow()
+
+    fun recordarEn(segundos: Int = 10) {
+        if (trabajo?.isActive == true) return
+
+        trabajo = viewModelScope.launch {
+            try {
+                for (i in segundos downTo 1) {
+                    _faltan.value = i
+                    delay(1000)
+                }
+
+                val aviso = repo.registrar(
+                    titulo = "Recordatorio",
+                    texto = "Revisa tu laboratorio pendiente",
+                    origen = Origen.RECORDATORIO
+                )
+
+                _eventos.emit(aviso)
+
+            } finally {
+                _faltan.value = null
+            }
+        }
+    }
+
+    fun cancelarRecordatorio() {
+        trabajo?.cancel()
+    }
 
     // TODO Paso 6: escuchandoAvion, cambiarEscucha y alCambiarModoAvion()
 
