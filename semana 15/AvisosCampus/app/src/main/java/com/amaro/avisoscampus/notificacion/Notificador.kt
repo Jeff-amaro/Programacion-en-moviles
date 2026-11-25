@@ -1,6 +1,9 @@
 package com.amaro.avisoscampus.notificacion
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import com.amaro.avisoscampus.model.Aviso
 
 object Notificador {
@@ -9,6 +12,19 @@ object Notificador {
 
     fun crearCanal(context: Context) {
         // TODO Paso 1: crear el canal de notificación
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val canal = NotificationChannel(
+                CANAL,
+                "Avisos",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+
+            val manager = context.getSystemService(
+                NotificationManager::class.java
+            )
+
+            manager.createNotificationChannel(canal)
+        }
     }
 
     fun tienePermiso(context: Context): Boolean {
