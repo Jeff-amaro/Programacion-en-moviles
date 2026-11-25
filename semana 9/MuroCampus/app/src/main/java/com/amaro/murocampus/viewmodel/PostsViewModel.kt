@@ -34,18 +34,36 @@ class PostsViewModel(
 
     val detalle = _detalle.asStateFlow()
 
+    // Filtro por usuario
+    private val _usuarioFiltro =
+        MutableStateFlow<Int?>(null)
+
+    val usuarioFiltro = _usuarioFiltro.asStateFlow()
+
     private var detalleJob: Job? = null
+    private var listaJob: Job? = null
 
     init {
         cargar()
     }
 
     fun cargar() {
-        viewModelScope.launch {
+
+        listaJob?.cancel()
+
+        listaJob = viewModelScope.launch {
 
             _lista.value = UiState.Cargando
 
-            repo.listar()
+            val userId = _usuarioFiltro.value
+
+            val resultado = if (userId == null) {
+                repo.listar()
+            } else {
+                repo.porUsuario(userId)
+            }
+
+            resultado
                 .onSuccess { posts ->
                     _lista.value = UiState.Exito(posts)
                 }
@@ -55,6 +73,11 @@ class PostsViewModel(
                     )
                 }
         }
+    }
+
+    fun filtrar(userId: Int?) {
+        _usuarioFiltro.value = userId
+        cargar()
     }
 
     fun abrir(id: Int) {
