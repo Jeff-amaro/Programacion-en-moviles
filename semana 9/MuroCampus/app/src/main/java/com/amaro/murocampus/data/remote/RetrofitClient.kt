@@ -1,8 +1,10 @@
+
 package com.amaro.murocampus.data.remote
 
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.Interceptor
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -13,7 +15,19 @@ object RetrofitClient {
         ignoreUnknownKeys = true
     }
 
+    // MEJORA 1: Interceptor de encabezados
+    private val headerInterceptor = Interceptor { chain ->
+
+        val request = chain.request()
+            .newBuilder()
+            .header("Accept", "application/json")
+            .build()
+
+        chain.proceed(request)
+    }
+
     private val cliente = OkHttpClient.Builder()
+        .addInterceptor(headerInterceptor)
         .addInterceptor(
             HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
